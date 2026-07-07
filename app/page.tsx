@@ -2,7 +2,6 @@ import { SiteHeader } from "@/components/landing/site-header";
 import { Hero } from "@/components/landing/hero";
 import { Features } from "@/components/landing/features";
 import { Benefits } from "@/components/landing/benefits";
-import { Pricing } from "@/components/landing/pricing";
 import { Testimonials } from "@/components/landing/testimonials";
 import { Faq } from "@/components/landing/faq";
 import { SiteFooter } from "@/components/landing/site-footer";
@@ -15,7 +14,6 @@ export default function Home() {
         <Hero />
         <Features />
         <Benefits />
-        <Pricing />
         <Testimonials />
         <Faq />
       </main>
