@@ -85,13 +85,17 @@ export async function POST(request: NextRequest) {
       messages: [
         {
           role: "user",
+          // Cast to `any` here: the installed SDK version's TypeScript
+          // types haven't caught up to the "document" content block yet,
+          // even though the actual API fully supports sending PDFs this
+          // way. This is a types-only mismatch, not a real bug.
           content: [
             {
               type: "document",
               source: { type: "base64", media_type: "application/pdf", data: base64 },
             },
             { type: "text", text: EXTRACTION_PROMPT },
-          ],
+          ] as any,
         },
       ],
     });
