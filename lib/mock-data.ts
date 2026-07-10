@@ -211,6 +211,29 @@ export const chatHistory: ChatMessage[] = [
   },
 ];
 
-// Energy efficiency score is a derived output metric — left as a placeholder
-// for the real scoring model rather than computed here.
-export const energyHealthScorePlaceholder = null;
+// Energy Health Score is a derived output metric — the actual scoring
+// algorithm belongs in the future backend. This mock object mirrors the
+// shape that real model would need to return, so the UI (and the peer/
+// historical comparisons it displays) can be built against a realistic
+// contract now.
+export interface EnergyHealthScore {
+  score: number; // 0-100
+  trend: "improving" | "stable" | "declining";
+  trendDeltaPoints: number; // change vs previous month
+  peerPercentile: number; // e.g. 72 = better than 72% of similar homes
+  peerComparisonLabel: string;
+  factors: { label: string; impact: "positive" | "negative"; weight: "high" | "medium" | "low" }[];
+}
+
+export const energyHealthScore: EnergyHealthScore = {
+  score: 78,
+  trend: "improving",
+  trendDeltaPoints: 4,
+  peerPercentile: 72,
+  peerComparisonLabel: "similar-sized homes in your area",
+  factors: [
+    { label: "EV charging shifted toward off-peak", impact: "positive", weight: "high" },
+    { label: "HVAC runtime above seasonal norm", impact: "negative", weight: "medium" },
+    { label: "Consistent usage pattern month to month", impact: "positive", weight: "low" },
+  ],
+};
