@@ -1,9 +1,9 @@
 import { DollarSign, Zap, Leaf, Gauge, PiggyBank, TrendingDown, TrendingUp } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn, formatCurrency, formatKwh } from "@/lib/utils";
-import { recommendations } from "@/lib/mock-data";
 import type { Bill, MonthlyUsagePoint } from "@/types";
 import type { ComputedHealthScore } from "@/lib/energy-model";
+import type { GeneratedRecommendation } from "@/lib/recommendation-engine";
 
 // Framed as "vs your own average," not just a raw number — this
 // comparison only exists because VoltIQ has your usage history. A
@@ -20,9 +20,10 @@ interface SummaryCardsProps {
   currentBill: Bill;
   monthlyPoints: MonthlyUsagePoint[];
   healthScore: ComputedHealthScore | null;
+  recommendations: GeneratedRecommendation[];
 }
 
-export function SummaryCards({ currentBill, monthlyPoints, healthScore }: SummaryCardsProps) {
+export function SummaryCards({ currentBill, monthlyPoints, healthScore, recommendations }: SummaryCardsProps) {
   const avgCost = recentAverage(monthlyPoints, "cost");
   const avgKwh = recentAverage(monthlyPoints, "kwh");
   const avgCarbon = recentAverage(monthlyPoints, "carbonKg");
@@ -33,8 +34,6 @@ export function SummaryCards({ currentBill, monthlyPoints, healthScore }: Summar
   const carbonDelta = avgCarbon > 0 ? ((currentCarbon - avgCarbon) / avgCarbon) * 100 : 0;
   const hasBaseline = monthlyPoints.length > 1;
 
-  // Recommendations are still mock data at this stage (a separate,
-  // not-yet-built step) — flagged here rather than presented as real.
   const totalPotentialSavings = recommendations.reduce((sum, r) => sum + r.estimatedSavings, 0);
 
   return (
@@ -53,7 +52,7 @@ export function SummaryCards({ currentBill, monthlyPoints, healthScore }: Summar
         label="Estimated Savings"
         value={formatCurrency(totalPotentialSavings)}
         deltaLabel="available this month"
-        staticNote="from sample recommendations"
+        staticNote="from active recommendations"
       />
       <SummaryCard
         icon={Zap}

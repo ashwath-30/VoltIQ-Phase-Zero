@@ -1,8 +1,9 @@
-import { Wind, Sun, Battery, Car, Wrench, Activity } from "lucide-react";
+import { Wind, Sun, Battery, Car, Wrench, Activity, Lightbulb } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { EmptyState } from "@/components/states";
 import { formatCurrency } from "@/lib/utils";
-import { recommendations } from "@/lib/mock-data";
+import type { GeneratedRecommendation } from "@/lib/recommendation-engine";
 
 const categoryIcon = {
   hvac: Wind,
@@ -19,44 +20,44 @@ const priorityVariant = {
   low: "muted",
 } as const;
 
-export function SavingsOpportunitiesList() {
-  const sorted = [...recommendations].sort((a, b) => b.estimatedSavings - a.estimatedSavings);
-
+export function SavingsOpportunitiesList({ recommendations }: { recommendations: GeneratedRecommendation[] }) {
   return (
     <Card>
-      <CardHeader className="flex flex-row items-start justify-between space-y-0">
-        <div>
-          <CardTitle>Savings Opportunities</CardTitle>
-          <CardDescription>
-            Sample suggestions — personalized recommendation logic based on your real bills is coming
-            soon
-          </CardDescription>
-        </div>
-        <Badge variant="muted">Sample</Badge>
+      <CardHeader>
+        <CardTitle>Savings Opportunities</CardTitle>
+        <CardDescription>Computed from your real bill history and home profile</CardDescription>
       </CardHeader>
-      <CardContent className="flex flex-col divide-y divide-border">
-        {sorted.map((rec) => {
-          const Icon = categoryIcon[rec.category];
-          return (
-            <div key={rec.id} className="flex items-start gap-4 py-4 first:pt-0 last:pb-0">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary-50 dark:bg-primary-900/30">
-                <Icon className="h-5 w-5 text-primary" />
-              </div>
-              <div className="min-w-0 flex-1">
-                <div className="flex flex-wrap items-center gap-2">
-                  <p className="text-sm font-medium">{rec.title}</p>
-                  <Badge variant={priorityVariant[rec.priority]} className="capitalize">
-                    {rec.priority} priority
-                  </Badge>
+      <CardContent className={recommendations.length === 0 ? undefined : "flex flex-col divide-y divide-border"}>
+        {recommendations.length === 0 ? (
+          <EmptyState
+            icon={Lightbulb}
+            title="No recommendations yet"
+            description="Upload a couple of bills — and fill in your home profile — for VoltIQ to surface real, personalized suggestions here."
+          />
+        ) : (
+          recommendations.map((rec) => {
+            const Icon = categoryIcon[rec.category];
+            return (
+              <div key={rec.id} className="flex items-start gap-4 py-4 first:pt-0 last:pb-0">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary-50 dark:bg-primary-900/30">
+                  <Icon className="h-5 w-5 text-primary" />
                 </div>
-                <p className="mt-1 text-sm text-muted-foreground">{rec.description}</p>
+                <div className="min-w-0 flex-1">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <p className="text-sm font-medium">{rec.title}</p>
+                    <Badge variant={priorityVariant[rec.priority]} className="capitalize">
+                      {rec.priority} priority
+                    </Badge>
+                  </div>
+                  <p className="mt-1 text-sm text-muted-foreground">{rec.description}</p>
+                </div>
+                <p className="shrink-0 whitespace-nowrap font-display text-sm font-semibold text-primary">
+                  {formatCurrency(rec.estimatedSavings)}/mo
+                </p>
               </div>
-              <p className="shrink-0 whitespace-nowrap font-display text-sm font-semibold text-primary">
-                {formatCurrency(rec.estimatedSavings)}/mo
-              </p>
-            </div>
-          );
-        })}
+            );
+          })
+        )}
       </CardContent>
     </Card>
   );

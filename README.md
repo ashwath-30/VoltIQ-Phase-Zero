@@ -562,17 +562,26 @@ piece of work worth its own future step.
 
 The app is deployed and production-hardened. Real: authentication, bill
 upload/parsing, forecasting, Energy Health Score, peer comparison, the AI
-Assistant, Notifications, Profile, Analytics, and Reports (as real
-Monthly Audits derived from real bills). Still honestly mock, and clearly
-labeled as such in the UI: the Appliance Breakdown chart and the Savings
-Opportunities list — both need capabilities (appliance disaggregation,
-real recommendation logic) that haven't been built yet. Real PDF
-generation for report downloads also isn't built.
+Assistant, Notifications, Profile, Analytics, Reports (as real Monthly
+Audits derived from real bills), Privacy Policy, Terms of Service, and
+now **Recommendations** and **Appliance Breakdown** (Phase A).
 
-All 9 steps of the original backend plan are now complete, including
-Step 9: real Privacy Policy and Terms of Service pages (`/privacy`,
-`/terms`), linked from the footer and the registration checkbox. These
-are solid starting drafts specific to what VoltIQ actually does — not
-generic boilerplate — but are not a substitute for review by a real
-lawyer before this is fully public, especially once payments or a wider
-user base are involved.
+Recommendations are computed from real bill history and profile data
+(peak-hour usage share, rising cost trends, solar/battery eligibility) —
+every dollar figure is derived from real numbers, with the description
+text saying plainly where an industry-typical assumption was needed
+(e.g. we don't have your utility's exact time-of-use rates).
+
+Appliance Breakdown is now a real AI-generated estimate (via Claude),
+grounded in your actual total/peak/off-peak usage and home profile —
+clearly labeled "AI Estimate" rather than presented as measured data,
+since no real per-appliance metering hardware exists.
+
+Real PDF generation for report downloads still isn't built — that
+remains the one intentionally-deferred piece from Phase A's scope.
+
+Privacy Policy and Terms of Service (`/privacy`, `/terms`) are solid
+starting drafts specific to what VoltIQ actually does, not generic
+boilerplate — but are not a substitute for review by a real lawyer
+before this is fully public, especially once payments or a wider user
+base are involved.

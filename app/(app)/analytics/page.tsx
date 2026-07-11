@@ -20,6 +20,7 @@ import { createClient } from "@/lib/supabase/client";
 import { mapDbBillToBill, billsToMonthlyPoints } from "@/lib/bills";
 import { computeForecast, computeEnergyHealthScore, type ForecastResult, type ComputedHealthScore } from "@/lib/energy-model";
 import { getPeerComparison, type PeerComparisonResult } from "@/lib/peer-comparison";
+import { generateRecommendations, type GeneratedRecommendation } from "@/lib/recommendation-engine";
 import type { Bill } from "@/types";
 
 export default function AnalyticsPage() {
@@ -32,6 +33,9 @@ export default function AnalyticsPage() {
   const [forecast, setForecast] = useState<ForecastResult | null>(null);
   const [healthScore, setHealthScore] = useState<ComputedHealthScore | null>(null);
   const [peerComparison, setPeerComparison] = useState<PeerComparisonResult | null>(null);
+  const [recommendations, setRecommendations] = useState<GeneratedRecommendation[]>([]);
+  const [applianceData, setApplianceData] = useState<{ name: string; kwh: number }[] | null>(null);
+  const [applianceLoading, setApplianceLoading] = useState(true);
 
   useEffect(() => {
     async function load() {
@@ -42,13 +46,20 @@ export default function AnalyticsPage() {
       if (!user) return;
 
       const [{ data: profile }, { data: billRows }] = await Promise.all([
-        supabase.from("profiles").select("home_size").eq("id", user.id).single(),
+        supabase.from("profiles").select("home_size, has_solar, has_battery, has_ev").eq("id", user.id).single(),
         supabase.from("bills").select("*").order("upload_date", { ascending: false }),
       ]);
 
       const realBills = (billRows ?? []).map(mapDbBillToBill).filter((b) => b.status === "processed");
       setBills(realBills);
       setHomeSize(profile?.home_size ?? 0);
+      setRecommendations(
+        generateRecommendations(realBills, {
+          hasSolar: !!profile?.has_solar,
+          hasBattery: !!profile?.has_battery,
+          hasEv: !!profile?.has_ev,
+        })
+      );
 
       if (realBills.length > 0) {
         setForecast(computeForecast(realBills));
@@ -59,6 +70,17 @@ export default function AnalyticsPage() {
           const peer = await getPeerComparison(profile.home_size, latestBill.totalKwh);
           setPeerComparison(peer);
         }
+
+        // Fetched separately from the main page-load gate — this is a
+        // real AI call and shouldn't hold up the rest of the page, which
+        // has everything it needs already.
+        fetch("/api/appliance-estimate")
+          .then((res) => (res.ok ? res.json() : null))
+          .then((json) => setApplianceData(json?.breakdown ?? null))
+          .catch(() => setApplianceData(null))
+          .finally(() => setApplianceLoading(false));
+      } else {
+        setApplianceLoading(false);
       }
 
       setLoading(false);
@@ -133,7 +155,7 @@ export default function AnalyticsPage() {
       <CostTrendChart data={monthlyPoints} />
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <ApplianceBreakdownChart />
+        <ApplianceBreakdownChart data={applianceData} loading={applianceLoading} />
         <PeakOffPeakChart data={monthlyPoints} months={months} />
       </div>
 
@@ -142,7 +164,7 @@ export default function AnalyticsPage() {
         {forecast && <ForecastedBillChart currentBill={currentBill} forecast={forecast} />}
       </div>
 
-      <SavingsOpportunitiesList />
+      <SavingsOpportunitiesList recommendations={recommendations} />
     </div>
   );
 }

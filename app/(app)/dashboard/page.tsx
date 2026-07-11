@@ -19,6 +19,7 @@ import { createClient } from "@/lib/supabase/client";
 import { mapDbBillToBill, billsToMonthlyPoints } from "@/lib/bills";
 import { computeForecast, computeEnergyHealthScore, type ForecastResult, type ComputedHealthScore } from "@/lib/energy-model";
 import { getPeerComparison, type PeerComparisonResult } from "@/lib/peer-comparison";
+import { generateRecommendations, type GeneratedRecommendation } from "@/lib/recommendation-engine";
 import type { Bill, NotificationItem } from "@/types";
 
 function mapNotificationRow(row: Record<string, any>): NotificationItem {
@@ -43,6 +44,7 @@ export default function DashboardPage() {
   const [healthScore, setHealthScore] = useState<ComputedHealthScore | null>(null);
   const [peerComparison, setPeerComparison] = useState<PeerComparisonResult | null>(null);
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
+  const [recommendations, setRecommendations] = useState<GeneratedRecommendation[]>([]);
 
   useEffect(() => {
     async function load() {
@@ -53,7 +55,7 @@ export default function DashboardPage() {
       if (!user) return;
 
       const [{ data: profile }, { data: billRows }, { data: notifRows }] = await Promise.all([
-        supabase.from("profiles").select("name, home_size").eq("id", user.id).single(),
+        supabase.from("profiles").select("name, home_size, has_solar, has_battery, has_ev").eq("id", user.id).single(),
         supabase.from("bills").select("*").order("upload_date", { ascending: false }),
         supabase.from("notifications").select("*").order("timestamp", { ascending: false }),
       ]);
@@ -63,6 +65,13 @@ export default function DashboardPage() {
       setNotifications((notifRows ?? []).map(mapNotificationRow));
       setFirstName((profile?.name || user.email || "there").split(" ")[0]);
       setHomeSize(profile?.home_size ?? 0);
+      setRecommendations(
+        generateRecommendations(realBills, {
+          hasSolar: !!profile?.has_solar,
+          hasBattery: !!profile?.has_battery,
+          hasEv: !!profile?.has_ev,
+        })
+      );
 
       if (realBills.length > 0) {
         setForecast(computeForecast(realBills));
@@ -128,7 +137,12 @@ export default function DashboardPage() {
       <PageHeader title={`Welcome back, ${firstName}`} description="Here's what's changed since your last visit" />
 
       <div className="flex flex-col gap-6">
-        <SummaryCards currentBill={currentBill} monthlyPoints={monthlyPoints} healthScore={healthScore} />
+        <SummaryCards
+          currentBill={currentBill}
+          monthlyPoints={monthlyPoints}
+          healthScore={healthScore}
+          recommendations={recommendations}
+        />
 
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
           <div className="lg:col-span-1">
@@ -139,7 +153,7 @@ export default function DashboardPage() {
             />
           </div>
           <div className="flex flex-col gap-6 lg:col-span-2">
-            <RecommendationsWidget />
+            <RecommendationsWidget recommendations={recommendations} />
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
               <RecentUploadsWidget bills={bills} />
               <NotificationsWidget notifications={notifications} />
