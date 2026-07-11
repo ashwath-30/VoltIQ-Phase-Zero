@@ -216,6 +216,14 @@ export default function SettingsPage() {
                   Delete account
                 </Button>
               </div>
+              <a
+                href="/privacy"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-sm text-primary hover:underline"
+              >
+                Read our full Privacy Policy →
+              </a>
             </CardContent>
           </Card>
         </TabsContent>

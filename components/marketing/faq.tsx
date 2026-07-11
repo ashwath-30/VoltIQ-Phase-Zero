@@ -1,3 +1,4 @@
+import Link from "next/link";
 import {
   Accordion,
   AccordionItem,
@@ -5,7 +6,7 @@ import {
   AccordionContent,
 } from "@/components/ui/accordion";
 
-const faqs = [
+const faqs: { question: string; answer: React.ReactNode }[] = [
   {
     question: "How does VoltIQ analyze my bill?",
     answer:
@@ -18,8 +19,17 @@ const faqs = [
   },
   {
     question: "Is my data kept private?",
-    answer:
-      "Your bills and account information are yours. VoltIQ doesn't sell your data, and you can request deletion of your account and all associated data at any time from Settings.",
+    answer: (
+      <>
+        Your bills and account information are yours. VoltIQ doesn't sell your data, and you can
+        request deletion of your account and all associated data at any time from Settings. Read our
+        full{" "}
+        <Link href="/privacy" className="text-primary hover:underline">
+          Privacy Policy
+        </Link>{" "}
+        for details.
+      </>
+    ),
   },
   {
     question: "Do I need solar panels or a battery to use VoltIQ?",

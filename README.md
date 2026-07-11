@@ -567,6 +567,12 @@ Monthly Audits derived from real bills). Still honestly mock, and clearly
 labeled as such in the UI: the Appliance Breakdown chart and the Savings
 Opportunities list — both need capabilities (appliance disaggregation,
 real recommendation logic) that haven't been built yet. Real PDF
-generation for report downloads also isn't built. Step 9 (privacy policy
-/ terms of service) is the only remaining item from the original backend
-plan.
+generation for report downloads also isn't built.
+
+All 9 steps of the original backend plan are now complete, including
+Step 9: real Privacy Policy and Terms of Service pages (`/privacy`,
+`/terms`), linked from the footer and the registration checkbox. These
+are solid starting drafts specific to what VoltIQ actually does — not
+generic boilerplate — but are not a substitute for review by a real
+lawyer before this is fully public, especially once payments or a wider
+user base are involved.

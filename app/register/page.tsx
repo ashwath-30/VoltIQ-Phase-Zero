@@ -144,11 +144,11 @@ export default function RegisterPage() {
           />
           <Label htmlFor="terms" className="text-xs font-normal text-muted-foreground">
             I agree to the{" "}
-            <a href="#" className="text-primary hover:underline">
+            <a href="/terms" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
               Terms of Service
             </a>{" "}
             and{" "}
-            <a href="#" className="text-primary hover:underline">
+            <a href="/privacy" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
               Privacy Policy
             </a>
           </Label>
