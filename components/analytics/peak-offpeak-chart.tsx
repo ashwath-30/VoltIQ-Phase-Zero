@@ -4,13 +4,20 @@ import { PieChart, Pie, Cell, Tooltip } from "recharts";
 import { ChartCard, chartColors } from "@/components/chart-card";
 import { monthlyUsageHistory } from "@/lib/mock-data";
 import { formatKwh } from "@/lib/utils";
+import type { MonthlyUsagePoint } from "@/types";
 
-export function PeakOffPeakChart({ months = 6 }: { months?: number }) {
-  const recent = monthlyUsageHistory.slice(-months);
+interface PeakOffPeakChartProps {
+  months?: number;
+  data?: MonthlyUsagePoint[];
+}
+
+export function PeakOffPeakChart({ months = 6, data: providedData }: PeakOffPeakChartProps) {
+  const source = providedData ?? monthlyUsageHistory;
+  const recent = source.slice(-months);
   const peakTotal = recent.reduce((sum, m) => sum + m.peak, 0);
   const offPeakTotal = recent.reduce((sum, m) => sum + m.offPeak, 0);
   const total = peakTotal + offPeakTotal;
-  const peakPercent = Math.round((peakTotal / total) * 100);
+  const peakPercent = total > 0 ? Math.round((peakTotal / total) * 100) : 0;
 
   const data = [
     { name: "Peak Hours", value: peakTotal },

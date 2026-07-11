@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
 import { Menu, Bell, Sun, Moon, User, Settings, LogOut } from "lucide-react";
@@ -17,7 +18,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuLabel,
 } from "@/components/ui/dropdown-menu";
-import { mockUser, notifications } from "@/lib/mock-data";
+import { createClient } from "@/lib/supabase/client";
 
 interface TopbarProps {
   onMobileMenuToggle: () => void;
@@ -26,11 +27,37 @@ interface TopbarProps {
 export function Topbar({ onMobileMenuToggle }: TopbarProps) {
   const { theme, setTheme } = useTheme();
   const router = useRouter();
-  const unreadCount = notifications.filter((n) => !n.read).length;
-  const initials = mockUser.name
+  const [displayName, setDisplayName] = useState("");
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  useEffect(() => {
+    async function load() {
+      const supabase = createClient();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const [{ data: profile }, { count }] = await Promise.all([
+        supabase.from("profiles").select("name").eq("id", user.id).single(),
+        supabase
+          .from("notifications")
+          .select("id", { count: "exact", head: true })
+          .eq("read", false),
+      ]);
+
+      setDisplayName(profile?.name || user.email || "");
+      setUnreadCount(count ?? 0);
+    }
+    load();
+  }, []);
+
+  const initials = (displayName || "?")
     .split(" ")
     .map((p) => p[0])
-    .join("");
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
 
   return (
     <header className="flex h-16 shrink-0 items-center justify-between border-b border-border bg-background px-4 md:px-6">
@@ -76,7 +103,7 @@ export function Topbar({ onMobileMenuToggle }: TopbarProps) {
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuLabel>{mockUser.name}</DropdownMenuLabel>
+            <DropdownMenuLabel>{displayName}</DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuItem asChild>
               <Link href="/profile">

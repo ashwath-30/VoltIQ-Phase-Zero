@@ -21,15 +21,18 @@ const priorityVariant = {
 
 export function SavingsOpportunitiesList() {
   const sorted = [...recommendations].sort((a, b) => b.estimatedSavings - a.estimatedSavings);
-  const totalSavings = sorted.reduce((sum, r) => sum + r.estimatedSavings, 0);
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle>Savings Opportunities</CardTitle>
-        <CardDescription>
-          Ranked by estimated monthly savings — up to {formatCurrency(totalSavings)}/mo available
-        </CardDescription>
+      <CardHeader className="flex flex-row items-start justify-between space-y-0">
+        <div>
+          <CardTitle>Savings Opportunities</CardTitle>
+          <CardDescription>
+            Sample suggestions — personalized recommendation logic based on your real bills is coming
+            soon
+          </CardDescription>
+        </div>
+        <Badge variant="muted">Sample</Badge>
       </CardHeader>
       <CardContent className="flex flex-col divide-y divide-border">
         {sorted.map((rec) => {

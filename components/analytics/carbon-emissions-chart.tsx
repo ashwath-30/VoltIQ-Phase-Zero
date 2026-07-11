@@ -3,9 +3,16 @@
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip } from "recharts";
 import { ChartCard, chartColors } from "@/components/chart-card";
 import { monthlyUsageHistory } from "@/lib/mock-data";
+import type { MonthlyUsagePoint } from "@/types";
 
-export function CarbonEmissionsChart({ months = 6 }: { months?: number }) {
-  const data = monthlyUsageHistory.slice(-months);
+interface CarbonEmissionsChartProps {
+  months?: number;
+  data?: MonthlyUsagePoint[];
+}
+
+export function CarbonEmissionsChart({ months = 6, data: providedData }: CarbonEmissionsChartProps) {
+  const source = providedData ?? monthlyUsageHistory;
+  const data = source.slice(-months);
 
   return (
     <ChartCard title="Carbon Emissions" description="Estimated CO₂ output based on your grid's energy mix" height={260}>

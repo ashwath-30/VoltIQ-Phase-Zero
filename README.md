@@ -492,11 +492,81 @@ needed anymore. Vercel sends the correct `CRON_SECRET` for you.
 
 
 
+## Replacing mock data with real data: Profile, Analytics, Reports
+
+This delivery removes the last big chunk of mock data from the app. One
+new SQL step, then everything else just works after merging.
+
+### A. Add the welcome-notification trigger update
+1. **SQL Editor** → **New query**
+2. Open `supabase/welcome-notification-trigger.sql`, copy all of it, paste
+   it in, click **Run**
+3. Green "Success," same as every other SQL step so far
+
+### B. Install and restart
+```
+npm install
+npm run dev
+```
+
+### What changed, and why
+
+**Profile page** — now fetches and saves your real data. Name and email
+are automatically filled in the moment you sign up (this was actually
+already working since Step 1 — the database trigger that creates your
+profile row already copied your name and email over; the Profile *page*
+just wasn't reading it, it was hardcoded to show "Jordan Reyes" regardless).
+Every field now loads your real saved values and the Save button writes
+real changes back to the database.
+
+**New: a welcome notification on signup.** The same trigger that creates
+your profile now also creates a notification nudging you to fill in home
+size, occupants, and equipment — check `/notifications` after registering
+a fresh test account to see it.
+
+**Topbar fixed too.** While working on this, I found the account menu (top
+right) and the notification bell's unread count were *still* quietly using
+mock data, even after Step 6 made the Notifications page itself real —
+these would've shown "Jordan Reyes" and a stale count forever. Both now
+reflect your real name and real unread count.
+
+**Analytics page** — now fetches your real bills and computes real
+comparisons, trends, and charts, the same way the Dashboard has since
+Step 4. If you have zero bills, you'll see a clean "nothing to analyze
+yet" prompt instead of a page full of fake numbers.
+
+**Two things on Analytics that are honestly still sample data, and now
+clearly labeled as such:** the Appliance Breakdown chart and the Savings
+Opportunities list. Both got a visible "Sample" badge. Reasoning: we have
+no real per-appliance data source, and no real recommendation-generation
+logic built yet — leaving these unlabeled next to now-real charts would
+have been more misleading than before, not less, since it'd look like
+everything on the page was equally real.
+
+**Reports page** — every real, successfully processed bill now
+automatically becomes a real "Monthly Audit" report entry, with its real
+date. Annual Summary / Forecast / Efficiency report types don't have real
+generation logic yet, so they simply won't appear until that's built —
+no fake placeholder entries standing in for them anymore.
+
+**One honest limitation on Reports:** the Download button is now
+intentionally disabled with a tooltip explaining PDF export isn't built
+yet. It previously faked a working download — now that the report
+*entries* are real, faking the download next to them would be a bigger,
+more confusing gap. Real PDF generation is a genuinely separate, sizable
+piece of work worth its own future step.
+
+
+
 ## Note on scope
 
-As of Step 8, the app is fully deployed and production-hardened.
-Forecasting, the Energy Health Score, peer comparison, the AI Assistant,
-and Notifications are all genuinely real — computed or generated from
-real data, not mock. Recommendations and the Analytics page are still
-realistic mock data. Step 9 (privacy policy / terms of service) is the
-only remaining item from the original backend plan.
+The app is deployed and production-hardened. Real: authentication, bill
+upload/parsing, forecasting, Energy Health Score, peer comparison, the AI
+Assistant, Notifications, Profile, Analytics, and Reports (as real
+Monthly Audits derived from real bills). Still honestly mock, and clearly
+labeled as such in the UI: the Appliance Breakdown chart and the Savings
+Opportunities list — both need capabilities (appliance disaggregation,
+real recommendation logic) that haven't been built yet. Real PDF
+generation for report downloads also isn't built. Step 9 (privacy policy
+/ terms of service) is the only remaining item from the original backend
+plan.

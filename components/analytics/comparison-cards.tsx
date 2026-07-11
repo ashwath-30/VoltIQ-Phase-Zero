@@ -1,13 +1,27 @@
-import { TrendingDown, TrendingUp, Users, CalendarClock } from "lucide-react";
+import { TrendingDown, TrendingUp, Users, CalendarClock, HelpCircle } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
-import { bills, energyHealthScore } from "@/lib/mock-data";
+import type { Bill } from "@/types";
+import type { ComputedHealthScore } from "@/lib/energy-model";
+import type { PeerComparisonResult } from "@/lib/peer-comparison";
 
-export function ComparisonCards() {
-  const current = bills[0];
-  const previous = bills[1];
-  const monthOverMonth = previous
-    ? ((current.totalCost - previous.totalCost) / previous.totalCost) * 100
+interface ComparisonCardsProps {
+  currentBill: Bill;
+  previousBill?: Bill;
+  healthScore: ComputedHealthScore | null;
+  peerComparison: PeerComparisonResult | null;
+  profileComplete: boolean;
+}
+
+export function ComparisonCards({
+  currentBill,
+  previousBill,
+  healthScore,
+  peerComparison,
+  profileComplete,
+}: ComparisonCardsProps) {
+  const monthOverMonth = previousBill
+    ? ((currentBill.totalCost - previousBill.totalCost) / previousBill.totalCost) * 100
     : 0;
 
   return (
@@ -15,23 +29,45 @@ export function ComparisonCards() {
       <ComparisonCard
         icon={CalendarClock}
         label="vs. Last Month"
-        value={`${monthOverMonth > 0 ? "+" : ""}${monthOverMonth.toFixed(1)}%`}
+        value={previousBill ? `${monthOverMonth > 0 ? "+" : ""}${monthOverMonth.toFixed(1)}%` : "—"}
         good={monthOverMonth < 0}
-        note={`${previous?.billingPeriodLabel ?? "previous period"} → ${current.billingPeriodLabel}`}
+        note={
+          previousBill
+            ? `${previousBill.billingPeriodLabel} → ${currentBill.billingPeriodLabel}`
+            : "Upload another bill to compare"
+        }
       />
       <ComparisonCard
-        icon={energyHealthScore.trend === "improving" ? TrendingDown : TrendingUp}
+        icon={
+          !healthScore ? HelpCircle : healthScore.trend === "improving" ? TrendingDown : TrendingUp
+        }
         label="Your Trend"
-        value={`${energyHealthScore.trendDeltaPoints > 0 ? "+" : ""}${energyHealthScore.trendDeltaPoints} pts`}
-        good={energyHealthScore.trend === "improving"}
+        value={
+          healthScore
+            ? `${healthScore.trendDeltaPoints > 0 ? "+" : ""}${healthScore.trendDeltaPoints} pts`
+            : "—"
+        }
+        good={healthScore?.trend === "improving"}
         note="Energy Health Score, month over month"
       />
       <ComparisonCard
         icon={Users}
         label="vs. Similar Homes"
-        value={`Top ${100 - energyHealthScore.peerPercentile}%`}
-        good={energyHealthScore.peerPercentile >= 50}
-        note={energyHealthScore.peerComparisonLabel}
+        value={
+          !profileComplete
+            ? "—"
+            : peerComparison && peerComparison.percentile !== null
+            ? `Top ${100 - peerComparison.percentile}%`
+            : "—"
+        }
+        good={!!peerComparison && peerComparison.percentile !== null && peerComparison.percentile >= 50}
+        note={
+          !profileComplete
+            ? "Add your home size in Profile to unlock this"
+            : peerComparison && peerComparison.percentile !== null
+            ? `Better than ${peerComparison.percentile}% of ${peerComparison.comparableHomes} similar-sized homes`
+            : "Not enough similar homes on VoltIQ yet"
+        }
         highlight
       />
     </div>

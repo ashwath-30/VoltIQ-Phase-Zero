@@ -1,7 +1,6 @@
 "use client";
 
-import { useState } from "react";
-import { FileText, CalendarRange, TrendingUp, Gauge, Download, Loader2, Check, AlertTriangle } from "lucide-react";
+import { FileText, CalendarRange, TrendingUp, Gauge, Download, Loader2, AlertTriangle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import type { ReportItem } from "@/types";
@@ -20,17 +19,7 @@ const statusVariant = {
 } as const;
 
 export function ReportRow({ report }: { report: ReportItem }) {
-  const [downloadState, setDownloadState] = useState<"idle" | "downloading" | "done">("idle");
   const { icon: Icon, label } = typeConfig[report.type];
-
-  function handleDownload() {
-    if (report.status !== "ready" || downloadState !== "idle") return;
-    setDownloadState("downloading");
-    setTimeout(() => {
-      setDownloadState("done");
-      setTimeout(() => setDownloadState("idle"), 1800);
-    }, 900);
-  }
 
   return (
     <div className="flex items-center gap-4 border-b border-border py-4 last:border-0">
@@ -46,12 +35,6 @@ export function ReportRow({ report }: { report: ReportItem }) {
           <span>
             {new Date(report.date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
           </span>
-          {report.sizeKb > 0 && (
-            <>
-              <span>·</span>
-              <span>{report.sizeKb >= 1000 ? `${(report.sizeKb / 1000).toFixed(1)} MB` : `${report.sizeKb} KB`}</span>
-            </>
-          )}
         </div>
       </div>
 
@@ -64,17 +47,11 @@ export function ReportRow({ report }: { report: ReportItem }) {
       <Button
         variant="ghost"
         size="icon"
-        onClick={handleDownload}
-        disabled={report.status !== "ready"}
-        aria-label={`Download ${report.title}`}
+        disabled
+        title="PDF export isn't built yet — coming in a future update"
+        aria-label={`Download ${report.title} (not available yet)`}
       >
-        {downloadState === "downloading" ? (
-          <Loader2 className="h-4 w-4 animate-spin" />
-        ) : downloadState === "done" ? (
-          <Check className="h-4 w-4 text-primary" />
-        ) : (
-          <Download className="h-4 w-4" />
-        )}
+        <Download className="h-4 w-4" />
       </Button>
     </div>
   );

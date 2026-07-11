@@ -2,7 +2,6 @@ import ReactMarkdown from "react-markdown";
 import { Zap, FileText } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { mockUser } from "@/lib/mock-data";
 
 export interface ChatMessageData {
   id: string;
@@ -11,18 +10,20 @@ export interface ChatMessageData {
   sources?: string[];
 }
 
-export function MessageBubble({ message }: { message: ChatMessageData }) {
+export function MessageBubble({
+  message,
+  userInitials = "?",
+}: {
+  message: ChatMessageData;
+  userInitials?: string;
+}) {
   const isUser = message.role === "user";
-  const initials = mockUser.name
-    .split(" ")
-    .map((p) => p[0])
-    .join("");
 
   return (
     <div className={cn("flex gap-3", isUser && "flex-row-reverse")}>
       <Avatar className="h-8 w-8 shrink-0">
         {isUser ? (
-          <AvatarFallback className="text-xs">{initials}</AvatarFallback>
+          <AvatarFallback className="text-xs">{userInitials}</AvatarFallback>
         ) : (
           <AvatarFallback className="bg-primary text-primary-foreground">
             <Zap className="h-3.5 w-3.5" />

@@ -2,6 +2,7 @@
 
 import { PieChart, Pie, Cell, Tooltip, Legend } from "recharts";
 import { ChartCard } from "@/components/chart-card";
+import { Badge } from "@/components/ui/badge";
 import { applianceBreakdown } from "@/lib/mock-data";
 import { formatKwh } from "@/lib/utils";
 
@@ -19,8 +20,9 @@ export function ApplianceBreakdownChart() {
   return (
     <ChartCard
       title="Appliance Energy Breakdown"
-      description="Estimated via usage disaggregation, not a manual guess"
+      description="Sample data — real per-appliance breakdown needs a disaggregation model we haven't built yet"
       height={300}
+      action={<Badge variant="muted">Sample</Badge>}
     >
       <PieChart>
         <Pie

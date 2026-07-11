@@ -27,11 +27,29 @@ export default function AssistantPage() {
   const [loadingHistory, setLoadingHistory] = useState(true);
   const [isTyping, setIsTyping] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [userInitials, setUserInitials] = useState("?");
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     async function loadHistory() {
       const supabase = createClient();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (user) {
+        const { data: profile } = await supabase.from("profiles").select("name").eq("id", user.id).single();
+        const name = profile?.name || user.email || "?";
+        setUserInitials(
+          name
+            .split(" ")
+            .map((p: string) => p[0])
+            .join("")
+            .slice(0, 2)
+            .toUpperCase()
+        );
+      }
+
       const { data } = await supabase
         .from("chats")
         .select("*")
@@ -118,7 +136,7 @@ export default function AssistantPage() {
           ) : (
             <>
               {messages.map((message) => (
-                <MessageBubble key={message.id} message={message} />
+                <MessageBubble key={message.id} message={message} userInitials={userInitials} />
               ))}
               {isTyping && <TypingIndicator />}
               {error && (
