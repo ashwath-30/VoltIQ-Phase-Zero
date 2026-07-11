@@ -6,7 +6,7 @@ import { computeForecast, computeEnergyHealthScore, type ForecastResult, type Co
 import type { Bill } from "@/types";
 import { requireEnv } from "@/lib/env";
 
-const anthropic = new Anthropic({ apiKey: requireEnv("ANTHROPIC_API_KEY") });
+const anthropic = new Anthropic({ apiKey: requireEnv(process.env.ANTHROPIC_API_KEY, "ANTHROPIC_API_KEY") });
 
 function buildSystemPrompt(
   profile: Record<string, any> | null,

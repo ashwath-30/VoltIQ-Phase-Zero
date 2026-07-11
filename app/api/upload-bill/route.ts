@@ -8,7 +8,7 @@ import { requireEnv } from "@/lib/env";
 
 // Server-only — this key must NEVER have the NEXT_PUBLIC_ prefix, or it
 // would be shipped to the browser and exposed to anyone who looks.
-const anthropic = new Anthropic({ apiKey: requireEnv("ANTHROPIC_API_KEY") });
+const anthropic = new Anthropic({ apiKey: requireEnv(process.env.ANTHROPIC_API_KEY, "ANTHROPIC_API_KEY") });
 
 const EXTRACTION_PROMPT = `You are extracting structured data from a residential electricity utility bill PDF.
 
