@@ -101,7 +101,7 @@ export async function POST(request: NextRequest) {
   const healthScore = bills.length > 0 ? computeEnergyHealthScore(bills) : null;
 
   const systemPrompt = buildSystemPrompt(profile, bills, forecast, healthScore);
-  const conversationHistory = (chatRows ?? []).map((row) => ({
+  const conversationHistory = (chatRows ?? []).map((row: { role: string; content: string }) => ({
     role: row.role as "user" | "assistant",
     content: row.content as string,
   }));

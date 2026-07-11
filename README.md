@@ -558,7 +558,32 @@ piece of work worth its own future step.
 
 
 
-## Note on scope
+## Phase B: real PDF export + polish pass
+
+### Real PDF downloads for Reports
+Every Monthly Audit report on `/reports` now downloads a genuine PDF,
+generated entirely in your browser (no server round-trip, no repeated AI
+cost per download) from that bill's real data: total cost, usage,
+peak/off-peak split, and recommendations computed specifically for that
+bill using the same recommendation engine from Phase A. Nothing new to
+set up — this uses a new package (`jspdf`), so just:
+```
+npm install
+npm run dev
+```
+
+### Polish pass
+Re-audited everything built since the original Phase 8 QA pass (a lot
+has been added since then): no invalid Tailwind classes, no hardcoded
+colors that would break dark mode, icon-only buttons have proper
+accessibility labels, no leftover debug logging. Also proactively
+type-annotated a couple of Supabase query callbacks that had the same
+*shape* of issue as the cookie-handling bug from Step 8's deployment
+(even though they likely wouldn't have actually failed the build) —
+better to close that category of risk entirely than find out the hard
+way on the next deploy.
+
+
 
 The app is deployed and production-hardened. Real: authentication, bill
 upload/parsing, forecasting, Energy Health Score, peer comparison, the AI
@@ -585,3 +610,12 @@ starting drafts specific to what VoltIQ actually does, not generic
 boilerplate — but are not a substitute for review by a real lawyer
 before this is fully public, especially once payments or a wider user
 base are involved.
+
+## Note on scope
+
+Phase B is complete: Reports now generate real, downloadable PDFs, and
+a full polish pass has been done across everything built since the
+original Phase 8 QA. At this point essentially everything in the app is
+real — Recommendations and Appliance Breakdown (labeled "AI Estimate")
+included as of Phase A. Remaining possibilities: Phase C (pricing
+decisions, real user testing) whenever you're ready for it.

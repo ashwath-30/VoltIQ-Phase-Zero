@@ -1,9 +1,11 @@
 "use client";
 
-import { FileText, CalendarRange, TrendingUp, Gauge, Download, Loader2, AlertTriangle } from "lucide-react";
+import { useState } from "react";
+import { FileText, CalendarRange, TrendingUp, Gauge, Download, Loader2, Check, AlertTriangle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import type { ReportItem } from "@/types";
+import type { ReportItem, Bill } from "@/types";
+import { generateMonthlyAuditPdf } from "@/lib/generate-report-pdf";
 
 const typeConfig = {
   "monthly-audit": { icon: FileText, label: "Monthly Audit" },
@@ -18,8 +20,40 @@ const statusVariant = {
   failed: "destructive",
 } as const;
 
-export function ReportRow({ report }: { report: ReportItem }) {
+interface ReportRowProps {
+  report: ReportItem;
+  bill?: Bill;
+  profile?: {
+    name?: string;
+    address?: string;
+    utilityProvider?: string;
+    hasSolar?: boolean;
+    hasBattery?: boolean;
+    hasEv?: boolean;
+  };
+}
+
+export function ReportRow({ report, bill, profile }: ReportRowProps) {
+  const [state, setState] = useState<"idle" | "generating" | "done" | "error">("idle");
   const { icon: Icon, label } = typeConfig[report.type];
+  const canDownload = report.status === "ready" && !!bill;
+
+  async function handleDownload() {
+    if (!bill || state === "generating") return;
+    setState("generating");
+    try {
+      // Runs entirely in the browser — a brief tick lets the spinner
+      // actually render before the (fast, synchronous) PDF build runs.
+      await new Promise((resolve) => setTimeout(resolve, 150));
+      generateMonthlyAuditPdf(bill, profile ?? {});
+      setState("done");
+      setTimeout(() => setState("idle"), 1800);
+    } catch (err) {
+      console.error("PDF generation error:", err);
+      setState("error");
+      setTimeout(() => setState("idle"), 2500);
+    }
+  }
 
   return (
     <div className="flex items-center gap-4 border-b border-border py-4 last:border-0">
@@ -47,11 +81,20 @@ export function ReportRow({ report }: { report: ReportItem }) {
       <Button
         variant="ghost"
         size="icon"
-        disabled
-        title="PDF export isn't built yet — coming in a future update"
-        aria-label={`Download ${report.title} (not available yet)`}
+        onClick={handleDownload}
+        disabled={!canDownload || state === "generating"}
+        title={canDownload ? "Download PDF" : "Not available"}
+        aria-label={`Download ${report.title}`}
       >
-        <Download className="h-4 w-4" />
+        {state === "generating" ? (
+          <Loader2 className="h-4 w-4 animate-spin" />
+        ) : state === "done" ? (
+          <Check className="h-4 w-4 text-primary" />
+        ) : state === "error" ? (
+          <AlertTriangle className="h-4 w-4 text-destructive" />
+        ) : (
+          <Download className="h-4 w-4" />
+        )}
       </Button>
     </div>
   );

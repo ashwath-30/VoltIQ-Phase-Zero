@@ -57,7 +57,7 @@ export default function AssistantPage() {
 
       if (data && data.length > 0) {
         setMessages(
-          data.map((row) => ({
+          data.map((row: { id: string; role: string; content: string; sources?: string[] }) => ({
             id: row.id,
             role: row.role as "user" | "assistant",
             content: row.content,
