@@ -29,7 +29,7 @@ export function Sidebar({ collapsed, onToggle, className, onNavigate }: SidebarP
       <div className={cn("flex h-16 items-center border-b border-border px-4", collapsed && "justify-center px-0")}>
         <Link href="/dashboard" className="flex items-center gap-2 overflow-hidden">
           <Zap className="h-5 w-5 shrink-0 text-primary" />
-          {!collapsed && <span className="font-display text-lg font-bold">VoltIQ</span>}
+          {!collapsed && <span className="font-display text-lg font-bold">VoltIQX</span>}
         </Link>
       </div>
 

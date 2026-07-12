@@ -100,7 +100,7 @@ export default function PricingPage() {
               </div>
               <CardHeader>
                 <CardTitle>Pro</CardTitle>
-                <CardDescription>For anyone who wants VoltIQ without limits</CardDescription>
+                <CardDescription>For anyone who wants VoltIQX without limits</CardDescription>
                 <p className="pt-4 font-display text-4xl font-bold">
                   $5<span className="text-base font-normal text-muted-foreground">/month</span>
                 </p>
@@ -129,7 +129,7 @@ export default function PricingPage() {
           </div>
 
           <p className="mt-8 text-center text-xs text-muted-foreground">
-            Payments are processed securely by Stripe. VoltIQ never sees or stores your card details.
+            Payments are processed securely by Stripe. VoltIQX never sees or stores your card details.
           </p>
         </div>
       </main>

@@ -28,7 +28,7 @@ export function Testimonials() {
       <div className="mx-auto max-w-6xl">
         <div className="mx-auto max-w-2xl text-center">
           <h2 className="font-display text-3xl font-bold tracking-tight md:text-4xl">
-            Homeowners are already saving with VoltIQ
+            Homeowners are already saving with VoltIQX
           </h2>
         </div>
 

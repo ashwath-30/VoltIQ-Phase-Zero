@@ -6,7 +6,7 @@ import type { ComputedHealthScore } from "@/lib/energy-model";
 import type { GeneratedRecommendation } from "@/lib/recommendation-engine";
 
 // Framed as "vs your own average," not just a raw number — this
-// comparison only exists because VoltIQ has your usage history. A
+// comparison only exists because VoltIQX has your usage history. A
 // one-off "paste your bill into a chatbot" session has no baseline to
 // compare against. Averages over whatever history exists (up to 6
 // months), rather than assuming a full 6 months are always available.

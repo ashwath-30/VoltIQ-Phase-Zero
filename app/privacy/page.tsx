@@ -7,7 +7,7 @@ export default function PrivacyPage() {
     <LegalPageLayout title="Privacy Policy" lastUpdated="July 11, 2026">
       <LegalSection title="1. Who we are">
         <p>
-          VoltIQ ("we," "us," "our") provides an AI-powered home energy auditing platform that helps
+          VoltIQX ("we," "us," "our") provides an AI-powered home energy auditing platform that helps
           you understand, forecast, and reduce your home electricity costs. This policy explains what
           information we collect, how we use it, and the choices you have.
         </p>
@@ -50,7 +50,7 @@ export default function PrivacyPage() {
           <li>Power the AI Assistant with context about your real account so its answers are relevant to you, not generic</li>
           <li>Send you notifications about your account (e.g. usage alerts, forecasted bill changes)</li>
           <li>Maintain the security and integrity of the platform</li>
-          <li>Improve VoltIQ's features and reliability</li>
+          <li>Improve VoltIQX's features and reliability</li>
         </ul>
         <p>We do not use your data to serve you ads, and we do not sell your personal information to third parties.</p>
       </LegalSection>
@@ -117,7 +117,7 @@ export default function PrivacyPage() {
 
       <LegalSection title="8. Children's privacy">
         <p>
-          VoltIQ is not directed at children, and we do not knowingly collect information from anyone
+          VoltIQX is not directed at children, and we do not knowingly collect information from anyone
           under 18. If you believe a child has provided us with personal information, contact us and
           we will delete it.
         </p>
@@ -125,7 +125,7 @@ export default function PrivacyPage() {
 
       <LegalSection title="9. Changes to this policy">
         <p>
-          We may update this policy as VoltIQ evolves. If we make material changes, we'll update the
+          We may update this policy as VoltIQX evolves. If we make material changes, we'll update the
           "Last updated" date above and, where appropriate, notify you directly.
         </p>
       </LegalSection>
@@ -133,8 +133,8 @@ export default function PrivacyPage() {
       <LegalSection title="10. Contact us">
         <p>
           Questions about this policy or your data? Reach us at{" "}
-          <a href="mailto:support@voltiq.app" className="text-primary hover:underline">
-            support@voltiq.app
+          <a href="mailto:support@voltiqx.app" className="text-primary hover:underline">
+            support@voltiqx.app
           </a>{" "}
           or via the{" "}
           <a href="/contact" className="text-primary hover:underline">

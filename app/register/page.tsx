@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { createClient } from "@/lib/supabase/client";
+import { markLoginTimestamp } from "@/lib/session-expiry";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -21,6 +22,15 @@ export default function RegisterPage() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [needsEmailConfirm, setNeedsEmailConfirm] = useState(false);
+  const [resendState, setResendState] = useState<"idle" | "sending" | "sent">("idle");
+
+  async function handleResend() {
+    setResendState("sending");
+    const supabase = createClient();
+    await supabase.auth.resend({ type: "signup", email });
+    setResendState("sent");
+    setTimeout(() => setResendState("idle"), 4000);
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -53,6 +63,7 @@ export default function RegisterPage() {
     if (data.session) {
       // Email confirmation is off in this Supabase project — user is
       // already logged in, so go straight to the dashboard.
+      markLoginTimestamp();
       router.push("/dashboard");
       router.refresh();
     } else {
@@ -64,16 +75,28 @@ export default function RegisterPage() {
 
   if (needsEmailConfirm) {
     return (
-      <AuthCard title="Check your email" description="One more step to activate your account">
+      <AuthCard title="Check your email" description="Confirmation required to activate your account">
         <div className="flex flex-col items-center gap-3 py-4 text-center">
           <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary-50 dark:bg-primary-900/30">
             <MailCheck className="h-6 w-6 text-primary" />
           </div>
           <p className="text-sm text-muted-foreground">
             We sent a confirmation link to <span className="font-medium text-foreground">{email}</span>.
-            Click it to activate your account, then come back and log in.
+            You'll need to click it before you can log in — this keeps VoltIQX accounts tied to a real,
+            reachable email address.
           </p>
-          <Link href="/login" className="text-sm font-medium text-primary hover:underline">
+          <button
+            onClick={handleResend}
+            disabled={resendState !== "idle"}
+            className="text-sm font-medium text-primary hover:underline disabled:opacity-60"
+          >
+            {resendState === "sending"
+              ? "Sending..."
+              : resendState === "sent"
+              ? "Sent — check your inbox"
+              : "Didn't get it? Resend the email"}
+          </button>
+          <Link href="/login" className="text-sm text-muted-foreground hover:underline">
             Back to login
           </Link>
         </div>

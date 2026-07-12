@@ -21,6 +21,6 @@ export default function robots(): MetadataRoute.Robots {
         ],
       },
     ],
-    sitemap: "https://voltiq.app/sitemap.xml",
+    sitemap: "https://voltiqx.app/sitemap.xml",
   };
 }

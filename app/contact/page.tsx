@@ -20,7 +20,7 @@ export default function ContactPage() {
           <div className="mx-auto max-w-xl text-center">
             <h1 className="font-display text-4xl font-bold tracking-tight">Get in touch</h1>
             <p className="mt-4 text-muted-foreground">
-              Questions about your bill, a bug to report, or just curious about VoltIQ — we read every
+              Questions about your bill, a bug to report, or just curious about VoltIQX — we read every
               message.
             </p>
           </div>
@@ -80,7 +80,7 @@ export default function ContactPage() {
                   </div>
                   <div>
                     <p className="text-sm font-medium">Email</p>
-                    <p className="text-sm text-muted-foreground">support@voltiq.app</p>
+                    <p className="text-sm text-muted-foreground">support@voltiqx.app</p>
                   </div>
                 </CardContent>
               </Card>

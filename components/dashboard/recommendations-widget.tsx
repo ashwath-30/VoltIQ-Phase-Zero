@@ -32,7 +32,7 @@ export function RecommendationsWidget({ recommendations }: { recommendations: Ge
           <EmptyState
             icon={Lightbulb}
             title="No recommendations yet"
-            description="Upload a couple of bills and VoltIQ will surface real, personalized suggestions here."
+            description="Upload a couple of bills and VoltIQX will surface real, personalized suggestions here."
           />
         ) : (
           top3.map((rec) => (

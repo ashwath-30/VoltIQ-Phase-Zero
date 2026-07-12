@@ -710,16 +710,87 @@ keeps test and live completely separate on purpose.
 
 
 
-## Note on scope
+## VoltIQX changes — Phase 1: identity, email verification, session security
+
+### A. The rename (VoltIQ → VoltIQX)
+Every user-facing mention of the brand name across the entire codebase —
+page titles, headings, the footer, email addresses, metadata, even the
+text drawn into generated PDF reports — is now "VoltIQX." Nothing to set
+up for this part, it's already done in the code. One thing **not**
+touched on purpose: your actual folder/GitHub repo is still named
+`VoltIQ-Phase-Zero` — renaming that is a separate, bigger operation
+(GitHub + Vercel project relinking) and wasn't part of what was asked,
+so I left it alone.
+
+### B. Turn real email verification back on
+Back in Step 2, you turned this off for easier testing. Time to reverse
+that:
+1. Supabase → **Authentication** → **Providers** → **Email**
+2. Turn **Confirm email** back **ON**
+3. Save
+
+### C. Point the confirmation email at your app
+By default, Supabase's confirmation email doesn't know about the new
+`/auth/confirm` route this delivery adds — you need to tell it:
+1. Supabase → **Authentication** → **Email Templates**
+2. Click **Confirm signup**
+3. Find the confirmation link in the template (something like
+   `{{ .ConfirmationURL }}`)
+4. Replace it with:
+   ```
+   {{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=email&next=/dashboard
+   ```
+5. Save
+
+### D. Confirm your Site URL is set correctly
+Since the confirmation link uses `{{ .SiteURL }}`, double check:
+1. Supabase → **Authentication** → **URL Configuration**
+2. **Site URL** should be your real production URL (e.g.
+   `https://volt-iq-phase-zero.vercel.app`) — not localhost, since real
+   users will be clicking this link from their email, not your laptop
+
+### E. Merge, install, test
+```
+npm install
+npm run dev
+```
+Then:
+1. Register a **brand new** test account (a real email you can check)
+2. You should land on a **"Check your email"** screen — not the dashboard
+3. Check that inbox, click the confirmation link
+4. You should land on the dashboard, now actually logged in
+5. Try logging in with an account you **haven't** confirmed yet — Supabase
+   should reject it with an error, not let you in
+
+### F. What else changed, without needing any setup
+- **Sign-up redirect bug, fixed**: clicking "Sign Up" now always shows
+  the registration form, even if you're currently logged in as someone
+  else — it no longer silently bounces you to the dashboard
+- **Real 24-hour sessions**: logging in now starts a real 24-hour clock,
+  tracked independently of Supabase's own session refresh. After 24
+  hours, the next page you visit will force a real sign-out and send you
+  to `/login` — you'll need to actually type your password again, not
+  just get silently waved through. To test this without waiting a full
+  day, you can manually edit your browser's cookies (find the
+  `voltiqx_login_at` cookie for your site and change its value to an
+  old timestamp) — not something you need to do, just an option if you
+  want to verify it firsthand
+
+
 
 Phase B is complete: Reports generate real, downloadable PDFs, and a
 full polish pass has been done. Phase C is complete: real Stripe billing
 enforces the Free (3 uploads/mo, 5 AI messages/mo) and Pro ($5/mo,
 unlimited) plans described in the README's billing section above.
 
-At this point, essentially everything in VoltIQ is real: auth, bill
+At this point, essentially everything in VoltIQX is real: auth (now with
+mandatory email verification and real 24-hour session expiry), bill
 parsing, forecasting, health score, peer comparison, AI Assistant,
 notifications, profile, analytics, recommendations, appliance estimates
-(honestly labeled), real PDF reports, and now real billing. What's
-intentionally still ahead: getting real users beyond your own testing,
-and iterating based on what that surfaces.
+(honestly labeled), real PDF reports, and real billing.
+
+## Note on scope
+
+Phase 1 of the VoltIQX changes (rename, email verification, session
+security) is complete. Phases 2 (profile-completion gate + in-app
+upgrade page) and 3 (additional security hardening) are next.

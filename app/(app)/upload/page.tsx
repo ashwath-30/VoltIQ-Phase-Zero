@@ -186,7 +186,7 @@ export default function UploadPage() {
             <CardDescription>
               Every bill you upload here is tracked over time — powering your Energy Health Score,
               forecast confidence, and comparisons against similar homes. A single chat conversation
-              starts over from zero every time; VoltIQ never does.
+              starts over from zero every time; VoltIQX never does.
             </CardDescription>
           </div>
         </CardHeader>

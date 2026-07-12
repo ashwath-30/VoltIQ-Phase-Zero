@@ -66,7 +66,7 @@ export function ComparisonCards({
             ? "Add your home size in Profile to unlock this"
             : peerComparison && peerComparison.percentile !== null
             ? `Better than ${peerComparison.percentile}% of ${peerComparison.comparableHomes} similar-sized homes`
-            : "Not enough similar homes on VoltIQ yet"
+            : "Not enough similar homes on VoltIQX yet"
         }
         highlight
       />

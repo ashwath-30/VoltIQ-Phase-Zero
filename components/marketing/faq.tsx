@@ -8,20 +8,20 @@ import {
 
 const faqs: { question: string; answer: React.ReactNode }[] = [
   {
-    question: "How does VoltIQ analyze my bill?",
+    question: "How does VoltIQX analyze my bill?",
     answer:
-      "Upload a PDF of your utility bill and VoltIQ extracts your usage, cost, and billing period, then breaks it down by likely appliance category and compares it against your historical patterns.",
+      "Upload a PDF of your utility bill and VoltIQX extracts your usage, cost, and billing period, then breaks it down by likely appliance category and compares it against your historical patterns.",
   },
   {
     question: "Which utility providers are supported?",
     answer:
-      "VoltIQ is designed to work with standard residential electricity bills from most major U.S. utility providers. Support is expanding as more bill formats are added.",
+      "VoltIQX is designed to work with standard residential electricity bills from most major U.S. utility providers. Support is expanding as more bill formats are added.",
   },
   {
     question: "Is my data kept private?",
     answer: (
       <>
-        Your bills and account information are yours. VoltIQ doesn't sell your data, and you can
+        Your bills and account information are yours. VoltIQX doesn't sell your data, and you can
         request deletion of your account and all associated data at any time from Settings. Read our
         full{" "}
         <Link href="/privacy" className="text-primary hover:underline">
@@ -32,9 +32,9 @@ const faqs: { question: string; answer: React.ReactNode }[] = [
     ),
   },
   {
-    question: "Do I need solar panels or a battery to use VoltIQ?",
+    question: "Do I need solar panels or a battery to use VoltIQX?",
     answer:
-      "No — VoltIQ works for any home, and the recommendations engine adjusts based on whether you have solar, a battery, or an EV, which you can set in your profile.",
+      "No — VoltIQX works for any home, and the recommendations engine adjusts based on whether you have solar, a battery, or an EV, which you can set in your profile.",
   },
   {
     question: "How accurate are the bill forecasts?",
@@ -42,9 +42,9 @@ const faqs: { question: string; answer: React.ReactNode }[] = [
       "Forecasts include a confidence score alongside the prediction, so you always know how much to trust a given estimate rather than treating it as guaranteed.",
   },
   {
-    question: "Can I use VoltIQ on my phone?",
+    question: "Can I use VoltIQX on my phone?",
     answer:
-      "Yes, VoltIQ is fully responsive and works in any mobile browser — no app download required.",
+      "Yes, VoltIQX is fully responsive and works in any mobile browser — no app download required.",
   },
 ];
 

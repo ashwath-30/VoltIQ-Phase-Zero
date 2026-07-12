@@ -8,6 +8,7 @@ import { AuthCard } from "@/components/auth/auth-card";
 import { FormField } from "@/components/auth/form-field";
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/client";
+import { markLoginTimestamp } from "@/lib/session-expiry";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -30,6 +31,7 @@ export default function LoginPage() {
       return;
     }
 
+    markLoginTimestamp();
     router.push("/dashboard");
     router.refresh();
   }

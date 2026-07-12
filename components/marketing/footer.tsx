@@ -25,7 +25,7 @@ export function Footer() {
           <div className="col-span-2 md:col-span-1">
             <Link href="/" className="flex items-center gap-2">
               <Zap className="h-5 w-5 text-primary" />
-              <span className="font-display text-lg font-bold">VoltIQ</span>
+              <span className="font-display text-lg font-bold">VoltIQX</span>
             </Link>
             <p className="mt-3 max-w-xs text-sm text-muted-foreground">
               AI-powered home energy auditing that helps you understand and lower your bill.
@@ -60,7 +60,7 @@ export function Footer() {
         </div>
 
         <div className="mt-10 border-t border-border pt-6 text-center text-xs text-muted-foreground">
-          © {new Date().getFullYear()} VoltIQ. All rights reserved.
+          © {new Date().getFullYear()} VoltIQX. All rights reserved.
         </div>
       </div>
     </footer>

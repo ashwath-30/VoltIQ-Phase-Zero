@@ -35,7 +35,7 @@ export function Hero() {
           transition={{ duration: 0.5, delay: 0.2 }}
           className="mx-auto mt-6 max-w-2xl text-balance text-lg text-muted-foreground"
         >
-          VoltIQ analyzes your utility bills, forecasts what you'll pay next month,
+          VoltIQX analyzes your utility bills, forecasts what you'll pay next month,
           and tells you exactly what to change to lower it — all in plain English.
         </motion.p>
 

@@ -98,7 +98,7 @@ export default function NotificationsPage() {
                 description={
                   filter === "unread"
                     ? "No unread notifications right now — check back after your next bill upload."
-                    : "VoltIQ checks every bill you upload against your history and flags anything worth knowing about — nothing to show yet."
+                    : "VoltIQX checks every bill you upload against your history and flags anything worth knowing about — nothing to show yet."
                 }
               />
             </div>

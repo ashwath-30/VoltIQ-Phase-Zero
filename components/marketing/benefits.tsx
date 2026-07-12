@@ -14,7 +14,7 @@ export function Benefits() {
               Stop guessing why your bill went up
             </h2>
             <p className="mt-4 text-muted-foreground">
-              Most homeowners find out their bill spiked a month too late, with no idea why. VoltIQ breaks
+              Most homeowners find out their bill spiked a month too late, with no idea why. VoltIQX breaks
               usage down by appliance, flags anomalies as they happen, and shows you the exact behavior
               or upgrade that would lower your next bill — before you're surprised by it again.
             </p>

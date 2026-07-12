@@ -22,23 +22,23 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://voltiq.app"), // update once you have a real domain
+  metadataBase: new URL("https://voltiqx.app"), // update once you have a real domain
   title: {
-    default: "VoltIQ — AI-Powered Home Energy Auditor",
-    template: "%s | VoltIQ",
+    default: "VoltIQX — AI-Powered Home Energy Auditor",
+    template: "%s | VoltIQX",
   },
   description:
     "Understand, forecast, and reduce your home electricity costs with AI-powered energy audits.",
   openGraph: {
-    title: "VoltIQ — AI-Powered Home Energy Auditor",
+    title: "VoltIQX — AI-Powered Home Energy Auditor",
     description:
       "Understand, forecast, and reduce your home electricity costs with AI-powered energy audits.",
-    siteName: "VoltIQ",
+    siteName: "VoltIQX",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "VoltIQ — AI-Powered Home Energy Auditor",
+    title: "VoltIQX — AI-Powered Home Energy Auditor",
     description:
       "Understand, forecast, and reduce your home electricity costs with AI-powered energy audits.",
   },

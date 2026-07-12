@@ -22,7 +22,7 @@ export function BillDropzone({ onFileAccepted }: DropzoneProps) {
         if (reason.code === "file-invalid-type") {
           setRejectionError("Only PDF files are supported. Please upload your bill as a PDF.");
         } else if (reason.code === "file-too-large") {
-          setRejectionError("That file is too large — VoltIQ accepts PDFs up to 10MB.");
+          setRejectionError("That file is too large — VoltIQX accepts PDFs up to 10MB.");
         } else {
           setRejectionError("That file couldn't be accepted. Please try a different PDF.");
         }

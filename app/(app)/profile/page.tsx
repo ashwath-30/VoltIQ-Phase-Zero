@@ -172,7 +172,7 @@ export default function ProfilePage() {
           <CardHeader>
             <CardTitle>Home details</CardTitle>
             <CardDescription>
-              Helps VoltIQ tailor forecasts and recommendations to your home — and unlocks comparisons
+              Helps VoltIQX tailor forecasts and recommendations to your home — and unlocks comparisons
               against similar-sized homes
             </CardDescription>
           </CardHeader>

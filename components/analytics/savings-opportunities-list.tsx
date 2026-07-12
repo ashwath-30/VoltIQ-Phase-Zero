@@ -32,7 +32,7 @@ export function SavingsOpportunitiesList({ recommendations }: { recommendations:
           <EmptyState
             icon={Lightbulb}
             title="No recommendations yet"
-            description="Upload a couple of bills — and fill in your home profile — for VoltIQ to surface real, personalized suggestions here."
+            description="Upload a couple of bills — and fill in your home profile — for VoltIQX to surface real, personalized suggestions here."
           />
         ) : (
           recommendations.map((rec) => {

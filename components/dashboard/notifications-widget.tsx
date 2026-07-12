@@ -23,7 +23,7 @@ export function NotificationsWidget({ notifications }: { notifications: Notifica
           <Bell className="h-4 w-4 text-primary" />
           <div>
             <CardTitle className="text-base">Noticed without asking</CardTitle>
-            <CardDescription>VoltIQ flagged these on its own</CardDescription>
+            <CardDescription>VoltIQX flagged these on its own</CardDescription>
           </div>
         </div>
         <Button variant="ghost" size="sm" asChild>
@@ -38,7 +38,7 @@ export function NotificationsWidget({ notifications }: { notifications: Notifica
           <EmptyState
             icon={Bell}
             title="Nothing to flag yet"
-            description="Upload a bill or two and VoltIQ will surface anything worth knowing about."
+            description="Upload a bill or two and VoltIQX will surface anything worth knowing about."
           />
         ) : (
           items.map((n) => (

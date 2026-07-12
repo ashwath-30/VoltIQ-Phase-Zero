@@ -1,7 +1,7 @@
 import type { MetadataRoute } from "next";
 
 // Update this to your real production domain once you have one.
-const BASE_URL = "https://voltiq.app";
+const BASE_URL = "https://voltiqx.app";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const publicPages = ["", "/about", "/contact", "/login", "/register"];

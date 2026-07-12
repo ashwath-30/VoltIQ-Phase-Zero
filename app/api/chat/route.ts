@@ -41,7 +41,7 @@ function buildSystemPrompt(
       }`
     : "Not enough bill history yet to compute a health score.";
 
-  return `You are the VoltIQ AI Energy Assistant, embedded in a home energy auditing app. You have access to this specific user's real account data below. Always answer using this real data when the question is about their account — never invent numbers that aren't provided here.
+  return `You are the VoltIQX AI Energy Assistant, embedded in a home energy auditing app. You have access to this specific user's real account data below. Always answer using this real data when the question is about their account — never invent numbers that aren't provided here.
 
 USER PROFILE:
 - Name: ${profile?.name || "Unknown"}

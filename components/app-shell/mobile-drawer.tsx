@@ -25,7 +25,7 @@ export function MobileDrawer({ open, onClose }: MobileDrawerProps) {
         <div className="flex h-16 items-center justify-between border-b border-border px-4">
           <Link href="/dashboard" onClick={onClose} className="flex items-center gap-2">
             <Zap className="h-5 w-5 text-primary" />
-            <span className="font-display text-lg font-bold">VoltIQ</span>
+            <span className="font-display text-lg font-bold">VoltIQX</span>
           </Link>
           <button onClick={onClose} aria-label="Close menu">
             <X className="h-5 w-5" />

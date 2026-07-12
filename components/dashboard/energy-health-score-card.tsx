@@ -97,7 +97,7 @@ export function EnergyHealthScoreWidget({
         ) : (
           <div className="flex items-center gap-2 rounded-lg bg-muted px-3 py-2 text-xs text-muted-foreground">
             <Users className="h-3.5 w-3.5 shrink-0" />
-            Not enough similar homes on VoltIQ yet to compare
+            Not enough similar homes on VoltIQX yet to compare
             {peerComparison ? ` (${peerComparison.comparableHomes} so far)` : ""}
           </div>
         )}

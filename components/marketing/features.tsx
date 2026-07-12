@@ -6,7 +6,7 @@ const features = [
     icon: Upload,
     title: "Upload & Auto-Analyze Bills",
     description:
-      "Drop in a PDF of your utility bill and VoltIQ extracts your usage, cost, and billing history automatically — no manual entry.",
+      "Drop in a PDF of your utility bill and VoltIQX extracts your usage, cost, and billing history automatically — no manual entry.",
   },
   {
     icon: TrendingUp,

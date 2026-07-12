@@ -20,7 +20,7 @@ const notificationPrefs = [
   { label: "Forecasted bill changes", description: "Notify me when next month's forecast changes significantly" },
   { label: "HVAC & appliance alerts", description: "Notify me about possible equipment issues" },
   { label: "New recommendations", description: "Notify me when a new savings tip is available" },
-  { label: "Product updates", description: "Occasional emails about new VoltIQ features" },
+  { label: "Product updates", description: "Occasional emails about new VoltIQX features" },
 ];
 
 export default function SettingsPage() {
@@ -105,7 +105,7 @@ export default function SettingsPage() {
           <Card>
             <CardHeader>
               <CardTitle>Appearance</CardTitle>
-              <CardDescription>Choose how VoltIQ looks on your device</CardDescription>
+              <CardDescription>Choose how VoltIQX looks on your device</CardDescription>
             </CardHeader>
             <CardContent className="flex flex-col gap-3 sm:flex-row">
               <ThemeOption
@@ -192,7 +192,7 @@ export default function SettingsPage() {
           <Card>
             <CardHeader>
               <CardTitle>Connected devices</CardTitle>
-              <CardDescription>Smart meters and home devices linked to VoltIQ</CardDescription>
+              <CardDescription>Smart meters and home devices linked to VoltIQX</CardDescription>
             </CardHeader>
             <CardContent>
               <EmptyState
@@ -210,7 +210,7 @@ export default function SettingsPage() {
           <Card>
             <CardHeader>
               <CardTitle>API integrations</CardTitle>
-              <CardDescription>Connect third-party services to VoltIQ</CardDescription>
+              <CardDescription>Connect third-party services to VoltIQX</CardDescription>
             </CardHeader>
             <CardContent>
               <EmptyState
@@ -228,7 +228,7 @@ export default function SettingsPage() {
             <CardHeader className="flex flex-row items-center justify-between space-y-0">
               <div>
                 <CardTitle>Billing</CardTitle>
-                <CardDescription>Manage your VoltIQ subscription</CardDescription>
+                <CardDescription>Manage your VoltIQX subscription</CardDescription>
               </div>
               {!billingLoading && (
                 <span
@@ -308,7 +308,7 @@ export default function SettingsPage() {
             </CardHeader>
             <CardContent className="flex flex-col gap-4">
               <p className="text-sm text-muted-foreground">
-                You can request a copy of your data or permanently delete your VoltIQ account at any time.
+                You can request a copy of your data or permanently delete your VoltIQX account at any time.
               </p>
               <div className="flex flex-col gap-2 sm:flex-row">
                 <Button variant="outline" size="sm">

@@ -8,7 +8,7 @@ const values = [
     icon: Target,
     title: "Clarity over complexity",
     description:
-      "Utility bills are confusing by default. Every part of VoltIQ is built to make your energy usage make sense at a glance.",
+      "Utility bills are confusing by default. Every part of VoltIQX is built to make your energy usage make sense at a glance.",
   },
   {
     icon: Users,
@@ -32,7 +32,7 @@ export default function AboutPage() {
         <div className="mx-auto max-w-3xl">
           <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-primary-200 bg-primary-50 px-4 py-1.5 text-sm font-medium text-primary-700 dark:border-primary-900 dark:bg-primary-900/30 dark:text-primary-300">
             <Zap className="h-3.5 w-3.5" />
-            About VoltIQ
+            About VoltIQX
           </div>
 
           <h1 className="font-display text-4xl font-bold tracking-tight md:text-5xl">
@@ -40,7 +40,7 @@ export default function AboutPage() {
           </h1>
 
           <p className="mt-6 text-lg text-muted-foreground">
-            VoltIQ started from a simple frustration: utility bills are full of numbers — kWh, peak vs.
+            VoltIQX started from a simple frustration: utility bills are full of numbers — kWh, peak vs.
             off-peak, tiered rates — but almost none of the context that actually explains why your bill
             looks the way it does, or what to do about it. Anyone can paste a bill into a general AI
             chatbot and get a one-off guess. We wanted something that actually remembers your home,
@@ -49,7 +49,7 @@ export default function AboutPage() {
           </p>
 
           <p className="mt-4 text-lg text-muted-foreground">
-            We're a small team building VoltIQ because we believe homeowners deserve the same level of
+            We're a small team building VoltIQX because we believe homeowners deserve the same level of
             insight utilities and energy companies already have about them — just pointed in their
             direction for once.
           </p>

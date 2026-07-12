@@ -33,7 +33,7 @@ export function generateMonthlyAuditPdf(bill: Bill, profile: ProfileInfo) {
   doc.setFont("helvetica", "bold");
   doc.setFontSize(20);
   doc.setTextColor(...EMERALD);
-  doc.text("VoltIQ", margin, y);
+  doc.text("VoltIQX", margin, y);
 
   doc.setFont("helvetica", "normal");
   doc.setFontSize(10);
@@ -124,12 +124,12 @@ export function generateMonthlyAuditPdf(bill: Bill, profile: ProfileInfo) {
   doc.setFontSize(8);
   doc.setTextColor(...MUTED);
   const disclaimer = doc.splitTextToSize(
-    "This report is generated automatically from data you uploaded to VoltIQ. Forecasts, scores, and recommendations are estimates, not guarantees — see VoltIQ's Terms of Service for details.",
+    "This report is generated automatically from data you uploaded to VoltIQX. Forecasts, scores, and recommendations are estimates, not guarantees — see VoltIQX's Terms of Service for details.",
     pageWidth - margin * 2
   );
   doc.text(disclaimer, margin, footerY);
 
-  doc.save(`VoltIQ-Monthly-Audit-${bill.billingPeriod}.pdf`);
+  doc.save(`VoltIQX-Monthly-Audit-${bill.billingPeriod}.pdf`);
 }
 
 function sectionHeader(doc: jsPDF, title: string, x: number, y: number): number {

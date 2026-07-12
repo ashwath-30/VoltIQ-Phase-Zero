@@ -1,6 +1,6 @@
 import type { Config } from "tailwindcss";
 
-// VoltIQ design tokens
+// VoltIQX design tokens
 // Primary: emerald (energy/efficiency) · Secondary: electric blue (data/insight)
 // Display font: Manrope (geometric, confident) · Body/UI: Inter · Data/mono: JetBrains Mono
 const config: Config = {
