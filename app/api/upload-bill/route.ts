@@ -5,6 +5,7 @@ import { mapDbBillToBill } from "@/lib/bills";
 import { computeForecast, computeEnergyHealthScore } from "@/lib/energy-model";
 import { generateNotifications } from "@/lib/notification-rules";
 import { requireEnv } from "@/lib/env";
+import { FREE_TIER_UPLOAD_LIMIT, startOfCurrentMonthISO } from "@/lib/usage-limits";
 
 // Server-only — this key must NEVER have the NEXT_PUBLIC_ prefix, or it
 // would be shipped to the browser and exposed to anyone who looks.
@@ -44,6 +45,29 @@ export async function POST(request: NextRequest) {
 
   if (!user) {
     return NextResponse.json({ error: "Not authenticated." }, { status: 401 });
+  }
+
+  // Check the free-tier upload limit BEFORE doing any file processing or
+  // spending money on the AI extraction call below.
+  const { data: profile } = await supabase.from("profiles").select("plan").eq("id", user.id).single();
+  const plan = profile?.plan ?? "free";
+
+  if (plan !== "pro") {
+    const { count } = await supabase
+      .from("bills")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", user.id)
+      .gte("upload_date", startOfCurrentMonthISO());
+
+    if ((count ?? 0) >= FREE_TIER_UPLOAD_LIMIT) {
+      return NextResponse.json(
+        {
+          error: `You've used all ${FREE_TIER_UPLOAD_LIMIT} free uploads this month. Upgrade to Pro for unlimited uploads.`,
+          limitReached: true,
+        },
+        { status: 403 }
+      );
+    }
   }
 
   const formData = await request.formData();

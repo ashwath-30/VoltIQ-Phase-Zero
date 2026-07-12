@@ -9,10 +9,13 @@ import { UploadSuccessModal } from "@/components/upload/success-modal";
 import { UploadErrorModal } from "@/components/upload/error-modal";
 import { UploadHistoryTable } from "@/components/upload/upload-history-table";
 import { Button } from "@/components/ui/button";
-import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Sparkles } from "lucide-react";
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import { EmptyState } from "@/components/states";
+import { Sparkles, Zap } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { mapDbBillToBill } from "@/lib/bills";
+import { FREE_TIER_UPLOAD_LIMIT, startOfCurrentMonthISO } from "@/lib/usage-limits";
+import Link from "next/link";
 import type { Bill } from "@/types";
 
 type UploadStatus = "idle" | "uploading" | "success" | "error";
@@ -22,21 +25,36 @@ export default function UploadPage() {
   const [status, setStatus] = useState<UploadStatus>("idle");
   const [progress, setProgress] = useState(0);
   const [errorMessage, setErrorMessage] = useState<string | undefined>();
+  const [limitReached, setLimitReached] = useState(false);
 
   const [bills, setBills] = useState<Bill[]>([]);
   const [billsLoading, setBillsLoading] = useState(true);
+  const [plan, setPlan] = useState<"free" | "pro">("free");
+  const [uploadsThisMonth, setUploadsThisMonth] = useState(0);
 
   const loadBills = useCallback(async () => {
     setBillsLoading(true);
     const supabase = createClient();
-    const { data, error } = await supabase
-      .from("bills")
-      .select("*")
-      .order("upload_date", { ascending: false });
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) return;
+
+    const [{ data, error }, { data: profile }, { count }] = await Promise.all([
+      supabase.from("bills").select("*").order("upload_date", { ascending: false }),
+      supabase.from("profiles").select("plan").eq("id", user.id).single(),
+      supabase
+        .from("bills")
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", user.id)
+        .gte("upload_date", startOfCurrentMonthISO()),
+    ]);
 
     if (!error && data) {
       setBills(data.map(mapDbBillToBill));
     }
+    setPlan(profile?.plan === "pro" ? "pro" : "free");
+    setUploadsThisMonth(count ?? 0);
     setBillsLoading(false);
   }, []);
 
@@ -56,6 +74,7 @@ export default function UploadPage() {
     setStatus("idle");
     setProgress(0);
     setErrorMessage(undefined);
+    setLimitReached(false);
   }
 
   async function startUpload() {
@@ -85,6 +104,7 @@ export default function UploadPage() {
 
       if (!response.ok) {
         setErrorMessage(result.error ?? "Something went wrong processing this bill.");
+        setLimitReached(!!result.limitReached);
         setStatus("error");
         return;
       }
@@ -103,7 +123,10 @@ export default function UploadPage() {
     setStatus("idle");
     setProgress(0);
     setErrorMessage(undefined);
+    setLimitReached(false);
   }
+
+  const atLimit = plan === "free" && uploadsThisMonth >= FREE_TIER_UPLOAD_LIMIT;
 
   return (
     <div className="mx-auto flex max-w-3xl flex-col gap-6">
@@ -112,7 +135,34 @@ export default function UploadPage() {
         description="Add a new utility bill — each upload strengthens your forecast and recommendations"
       />
 
-      {status === "uploading" && file ? (
+      {plan === "free" && !billsLoading && (
+        <Card className={atLimit ? "border-destructive/30 bg-destructive/5" : undefined}>
+          <CardContent className="flex flex-col items-start justify-between gap-3 pt-6 sm:flex-row sm:items-center">
+            <div>
+              <p className="text-sm font-medium">
+                {uploadsThisMonth} / {FREE_TIER_UPLOAD_LIMIT} uploads used this month
+              </p>
+              <p className="text-xs text-muted-foreground">
+                {atLimit ? "You've reached your free monthly limit." : "Free plan resets on the 1st of each month."}
+              </p>
+            </div>
+            <Button size="sm" variant={atLimit ? "default" : "outline"} asChild>
+              <Link href="/pricing">
+                <Zap className="h-3.5 w-3.5" />
+                Upgrade to Pro
+              </Link>
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
+      {atLimit ? (
+        <EmptyState
+          icon={Zap}
+          title="Monthly upload limit reached"
+          description={`You've used all ${FREE_TIER_UPLOAD_LIMIT} free uploads this month. Upgrade to Pro for unlimited uploads, or wait until next month for your limit to reset.`}
+        />
+      ) : status === "uploading" && file ? (
         <UploadProgress fileName={file.name} progress={Math.min(progress, 100)} />
       ) : file ? (
         <div className="flex flex-col gap-4">
@@ -160,6 +210,7 @@ export default function UploadPage() {
             onOpenChange={(open) => !open && setStatus("idle")}
             onRetry={handleRetry}
             message={errorMessage}
+            limitReached={limitReached}
           />
         </>
       )}

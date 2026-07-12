@@ -1,6 +1,7 @@
 "use client";
 
 import { useTheme } from "next-themes";
+import { useState, useEffect } from "react";
 import { PageHeader } from "@/components/app-shell/page-header";
 import { SaveButton } from "@/components/app-shell/save-button";
 import { FormField } from "@/components/auth/form-field";
@@ -10,7 +11,9 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/states";
-import { Monitor, Smartphone, Plug2, CreditCard, LifeBuoy, ShieldCheck } from "lucide-react";
+import { Monitor, Smartphone, Plug2, LifeBuoy, ShieldCheck, Zap, Loader2 } from "lucide-react";
+import { createClient } from "@/lib/supabase/client";
+import { FREE_TIER_UPLOAD_LIMIT, FREE_TIER_CHAT_LIMIT, startOfCurrentMonthISO } from "@/lib/usage-limits";
 
 const notificationPrefs = [
   { label: "High usage alerts", description: "Notify me when usage spikes above normal" },
@@ -22,6 +25,64 @@ const notificationPrefs = [
 
 export default function SettingsPage() {
   const { theme, setTheme } = useTheme();
+  const [plan, setPlan] = useState<"free" | "pro">("free");
+  const [uploadsUsed, setUploadsUsed] = useState(0);
+  const [chatsUsed, setChatsUsed] = useState(0);
+  const [billingLoading, setBillingLoading] = useState(true);
+  const [actionLoading, setActionLoading] = useState(false);
+
+  useEffect(() => {
+    async function loadBilling() {
+      const supabase = createClient();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const [{ data: profile }, { count: uploadCount }, { count: chatCount }] = await Promise.all([
+        supabase.from("profiles").select("plan").eq("id", user.id).single(),
+        supabase
+          .from("bills")
+          .select("id", { count: "exact", head: true })
+          .eq("user_id", user.id)
+          .gte("upload_date", startOfCurrentMonthISO()),
+        supabase
+          .from("chats")
+          .select("id", { count: "exact", head: true })
+          .eq("user_id", user.id)
+          .eq("role", "user")
+          .gte("timestamp", startOfCurrentMonthISO()),
+      ]);
+
+      setPlan(profile?.plan === "pro" ? "pro" : "free");
+      setUploadsUsed(uploadCount ?? 0);
+      setChatsUsed(chatCount ?? 0);
+      setBillingLoading(false);
+    }
+    loadBilling();
+  }, []);
+
+  async function handleUpgrade() {
+    setActionLoading(true);
+    const response = await fetch("/api/stripe/create-checkout-session", { method: "POST" });
+    const data = await response.json();
+    if (data.url) {
+      window.location.href = data.url;
+    } else {
+      setActionLoading(false);
+    }
+  }
+
+  async function handleManageBilling() {
+    setActionLoading(true);
+    const response = await fetch("/api/stripe/create-portal-session", { method: "POST" });
+    const data = await response.json();
+    if (data.url) {
+      window.location.href = data.url;
+    } else {
+      setActionLoading(false);
+    }
+  }
 
   return (
     <div className="mx-auto max-w-3xl">
@@ -164,16 +225,57 @@ export default function SettingsPage() {
         {/* Billing */}
         <TabsContent value="billing">
           <Card>
-            <CardHeader>
-              <CardTitle>Billing</CardTitle>
-              <CardDescription>Manage your VoltIQ subscription</CardDescription>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0">
+              <div>
+                <CardTitle>Billing</CardTitle>
+                <CardDescription>Manage your VoltIQ subscription</CardDescription>
+              </div>
+              {!billingLoading && (
+                <span
+                  className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-medium ${
+                    plan === "pro"
+                      ? "bg-primary-100 text-primary-800 dark:bg-primary-900/40 dark:text-primary-300"
+                      : "bg-muted text-muted-foreground"
+                  }`}
+                >
+                  {plan === "pro" && <Zap className="h-3 w-3" />}
+                  {plan === "pro" ? "Pro" : "Free"} plan
+                </span>
+              )}
             </CardHeader>
-            <CardContent>
-              <EmptyState
-                icon={CreditCard}
-                title="You're on the Free plan"
-                description="Billing and plan management will be available once VoltIQ's pricing is finalized."
-              />
+            <CardContent className="flex flex-col gap-5">
+              {billingLoading ? (
+                <p className="text-sm text-muted-foreground">Loading your plan...</p>
+              ) : plan === "pro" ? (
+                <>
+                  <p className="text-sm text-muted-foreground">
+                    You're on the Pro plan — unlimited uploads and unlimited AI Assistant access, $5/month.
+                  </p>
+                  <div>
+                    <Button variant="outline" size="sm" onClick={handleManageBilling} disabled={actionLoading}>
+                      {actionLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+                      Manage subscription
+                    </Button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="flex flex-col gap-3 sm:flex-row">
+                    <UsageBar label="Bill uploads" used={uploadsUsed} limit={FREE_TIER_UPLOAD_LIMIT} />
+                    <UsageBar label="AI Assistant messages" used={chatsUsed} limit={FREE_TIER_CHAT_LIMIT} />
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    You're on the Free plan. Upgrade to Pro for unlimited uploads and unlimited AI Assistant
+                    access — $5/month, cancel anytime.
+                  </p>
+                  <div>
+                    <Button size="sm" onClick={handleUpgrade} disabled={actionLoading}>
+                      {actionLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Zap className="h-4 w-4" />}
+                      Upgrade to Pro — $5/mo
+                    </Button>
+                  </div>
+                </>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
@@ -228,6 +330,28 @@ export default function SettingsPage() {
           </Card>
         </TabsContent>
       </Tabs>
+    </div>
+  );
+}
+
+function UsageBar({ label, used, limit }: { label: string; used: number; limit: number }) {
+  const percent = Math.min(100, Math.round((used / limit) * 100));
+  const isNearLimit = used >= limit;
+
+  return (
+    <div className="flex-1 rounded-lg border border-border p-3">
+      <div className="flex items-center justify-between text-sm">
+        <span className="font-medium">{label}</span>
+        <span className={isNearLimit ? "text-destructive" : "text-muted-foreground"}>
+          {used} / {limit}
+        </span>
+      </div>
+      <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-muted">
+        <div
+          className={`h-full rounded-full ${isNearLimit ? "bg-destructive" : "bg-primary"}`}
+          style={{ width: `${percent}%` }}
+        />
+      </div>
     </div>
   );
 }

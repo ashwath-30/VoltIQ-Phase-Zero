@@ -5,6 +5,7 @@ import { mapDbBillToBill } from "@/lib/bills";
 import { computeForecast, computeEnergyHealthScore, type ForecastResult, type ComputedHealthScore } from "@/lib/energy-model";
 import type { Bill } from "@/types";
 import { requireEnv } from "@/lib/env";
+import { FREE_TIER_CHAT_LIMIT, startOfCurrentMonthISO } from "@/lib/usage-limits";
 
 const anthropic = new Anthropic({ apiKey: requireEnv(process.env.ANTHROPIC_API_KEY, "ANTHROPIC_API_KEY") });
 
@@ -95,6 +96,26 @@ export async function POST(request: NextRequest) {
     supabase.from("bills").select("*").order("upload_date", { ascending: false }),
     supabase.from("chats").select("role, content").order("timestamp", { ascending: true }).limit(20),
   ]);
+
+  const plan = profile?.plan ?? "free";
+  if (plan !== "pro") {
+    const { count } = await supabase
+      .from("chats")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", user.id)
+      .eq("role", "user")
+      .gte("timestamp", startOfCurrentMonthISO());
+
+    if ((count ?? 0) >= FREE_TIER_CHAT_LIMIT) {
+      return NextResponse.json(
+        {
+          error: `You've used all ${FREE_TIER_CHAT_LIMIT} free AI Assistant messages this month. Upgrade to Pro for unlimited access.`,
+          limitReached: true,
+        },
+        { status: 403 }
+      );
+    }
+  }
 
   const bills = (billRows ?? []).map(mapDbBillToBill).filter((b) => b.status === "processed");
   const forecast = bills.length > 0 ? computeForecast(bills) : null;

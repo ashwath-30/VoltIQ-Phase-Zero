@@ -1,13 +1,16 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { AlertCircle } from "lucide-react";
+import Link from "next/link";
+import { AlertCircle, Zap } from "lucide-react";
 import { PageHeader } from "@/components/app-shell/page-header";
 import { MessageBubble, ChatMessageData } from "@/components/assistant/message-bubble";
 import { TypingIndicator } from "@/components/assistant/typing-indicator";
 import { SuggestedPrompts } from "@/components/assistant/suggested-prompts";
 import { ChatInput } from "@/components/assistant/chat-input";
+import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/client";
+import { FREE_TIER_CHAT_LIMIT, startOfCurrentMonthISO } from "@/lib/usage-limits";
 
 let idCounter = 0;
 function nextId() {
@@ -27,7 +30,10 @@ export default function AssistantPage() {
   const [loadingHistory, setLoadingHistory] = useState(true);
   const [isTyping, setIsTyping] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [limitReached, setLimitReached] = useState(false);
   const [userInitials, setUserInitials] = useState("?");
+  const [plan, setPlan] = useState<"free" | "pro">("free");
+  const [chatsThisMonth, setChatsThisMonth] = useState(0);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -38,7 +44,16 @@ export default function AssistantPage() {
       } = await supabase.auth.getUser();
 
       if (user) {
-        const { data: profile } = await supabase.from("profiles").select("name").eq("id", user.id).single();
+        const [{ data: profile }, { count }] = await Promise.all([
+          supabase.from("profiles").select("name, plan").eq("id", user.id).single(),
+          supabase
+            .from("chats")
+            .select("id", { count: "exact", head: true })
+            .eq("user_id", user.id)
+            .eq("role", "user")
+            .gte("timestamp", startOfCurrentMonthISO()),
+        ]);
+
         const name = profile?.name || user.email || "?";
         setUserInitials(
           name
@@ -48,6 +63,8 @@ export default function AssistantPage() {
             .slice(0, 2)
             .toUpperCase()
         );
+        setPlan(profile?.plan === "pro" ? "pro" : "free");
+        setChatsThisMonth(count ?? 0);
       }
 
       const { data } = await supabase
@@ -84,6 +101,7 @@ export default function AssistantPage() {
     setMessages((prev) => [...prev, userMessage]);
     setIsTyping(true);
     setError(null);
+    setLimitReached(false);
 
     const startedAt = Date.now();
 
@@ -105,10 +123,12 @@ export default function AssistantPage() {
 
       if (!response.ok) {
         setError(result.error ?? "Something went wrong. Please try again.");
+        setLimitReached(!!result.limitReached);
         setIsTyping(false);
         return;
       }
 
+      setChatsThisMonth((prev) => prev + 1);
       setMessages((prev) => [
         ...prev,
         { id: nextId(), role: "assistant", content: result.reply, sources: result.sources },
@@ -120,12 +140,28 @@ export default function AssistantPage() {
     }
   }
 
+  const atLimit = plan === "free" && chatsThisMonth >= FREE_TIER_CHAT_LIMIT;
+
   return (
     <div className="mx-auto flex h-full max-w-3xl flex-col">
       <PageHeader
         title="AI Assistant"
         description="Ask anything about your energy usage — grounded in your real account data"
       />
+
+      {plan === "free" && !loadingHistory && (
+        <div className="mb-4 flex items-center justify-between rounded-lg border border-border bg-muted/30 px-4 py-2.5 text-sm">
+          <span className={atLimit ? "font-medium text-destructive" : "text-muted-foreground"}>
+            {chatsThisMonth} / {FREE_TIER_CHAT_LIMIT} messages used this month
+          </span>
+          <Button size="sm" variant="ghost" asChild>
+            <Link href="/pricing">
+              <Zap className="h-3.5 w-3.5" />
+              Upgrade
+            </Link>
+          </Button>
+        </div>
+      )}
 
       <div className="flex flex-1 flex-col overflow-hidden rounded-xl border border-border bg-card shadow-card">
         <div ref={scrollRef} className="flex-1 space-y-5 overflow-y-auto p-5">
@@ -142,7 +178,14 @@ export default function AssistantPage() {
               {error && (
                 <div className="flex items-start gap-2 rounded-lg border border-destructive/20 bg-destructive/5 px-3 py-2 text-sm text-destructive">
                   <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
-                  {error}
+                  <div className="flex-1">
+                    {error}
+                    {limitReached && (
+                      <Link href="/pricing" className="ml-1 font-medium underline">
+                        Upgrade to Pro
+                      </Link>
+                    )}
+                  </div>
                 </div>
               )}
             </>
@@ -153,7 +196,7 @@ export default function AssistantPage() {
           <SuggestedPrompts onSelect={handleSend} />
         </div>
 
-        <ChatInput onSend={handleSend} disabled={isTyping || loadingHistory} />
+        <ChatInput onSend={handleSend} disabled={isTyping || loadingHistory || atLimit} />
       </div>
     </div>
   );

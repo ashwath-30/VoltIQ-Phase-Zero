@@ -611,11 +611,115 @@ boilerplate — but are not a substitute for review by a real lawyer
 before this is fully public, especially once payments or a wider user
 base are involved.
 
+## Setting up pricing & billing (Phase C)
+
+This is the biggest single setup phase yet — real payment processing
+touches money and security, so there are more steps than usual. Take
+them one at a time.
+
+### A. Add the billing columns to Supabase
+1. **SQL Editor** → **New query**
+2. Open `supabase/add-billing-columns.sql`, copy it, paste it in, click **Run**
+3. Green "Success," same as every SQL step before
+
+### B. Create your Stripe account and product
+1. Go to **stripe.com**, sign up (or log in)
+2. **Important**: Stripe starts you in **Test mode** (toggle top-right of
+   the dashboard) — stay in Test mode for now, so you can try the whole
+   flow with fake card numbers before ever touching real money
+3. Go to **Product catalog** → **Add product**
+4. Name it `VoltIQ Pro`
+5. Set pricing: **$5.00**, **Recurring**, **Monthly**
+6. Save — you'll land on the product page. Click on the price itself and
+   copy its **Price ID** (starts with `price_`)
+
+### C. Get your Stripe Secret Key
+1. In Stripe, go to **Developers** → **API keys**
+2. Copy the **Secret key** (starts with `sk_test_` while in Test mode)
+
+### D. Add what you have so far to `.env.local`
+```
+STRIPE_SECRET_KEY=paste-your-secret-key-here
+STRIPE_PRICE_ID=paste-your-price-id-here
+```
+(Leave `STRIPE_WEBHOOK_SECRET` for Step F — you need a live URL first.)
+
+### E. Install and test locally
+```
+npm install
+npm run dev
+```
+Visit `localhost:3000/pricing` — you should see both plans. The Free
+button should work immediately. The Pro button will redirect to a real
+Stripe Checkout page (safe — you're in Test mode). Use Stripe's official
+test card to try it: card number `4242 4242 4242 4242`, any future
+expiry date, any 3-digit CVC, any billing ZIP.
+
+**One thing that won't work yet locally:** after a successful test
+payment, your plan won't actually update to "Pro" until the webhook
+(Step F) is set up, since Stripe notifies your app of successful payments
+through a webhook call, not through the redirect itself.
+
+### F. Set up the webhook (do this after deploying)
+1. Push this code and deploy to Vercel first (merge → commit → push →
+   wait for Vercel to finish), so you have a real live URL
+2. Add `STRIPE_SECRET_KEY` and `STRIPE_PRICE_ID` to Vercel's environment
+   variables too (Settings → Environment Variables), same values as your
+   `.env.local`
+3. In Stripe: **Developers** → **Webhooks** → **Add endpoint**
+4. Endpoint URL: `https://your-vercel-url.vercel.app/api/stripe/webhook`
+5. Click **Select events**, choose:
+   - `checkout.session.completed`
+   - `customer.subscription.updated`
+   - `customer.subscription.deleted`
+6. Click **Add endpoint**
+7. On the endpoint's page, find **Signing secret**, click to reveal it,
+   copy it (starts with `whsec_`)
+8. Add it to **Vercel's** environment variables:
+   ```
+   STRIPE_WEBHOOK_SECRET=paste-the-signing-secret-here
+   ```
+9. Redeploy (Vercel → Deployments → "..." → Redeploy) so the new variable
+   takes effect
+
+### G. Test the real end-to-end flow
+1. On your live site, go to `/pricing`, click **Upgrade to Pro**
+2. Pay with the test card (`4242 4242 4242 4242`, any future date/CVC)
+3. You should land back on Settings, and after a moment, see **Pro plan**
+   with a "Manage subscription" button instead of the upload/chat usage
+   bars
+4. Try **Manage subscription** — it opens Stripe's real hosted portal,
+   where you can cancel the test subscription if you want to try the
+   downgrade path too
+
+### When you're ready for real payments
+Everything above uses Stripe's **Test mode** — no real money moves. When
+you're genuinely ready to accept real payments: toggle Stripe to **Live
+mode**, repeat steps B-D with your live keys (they're different from
+test keys), and update the webhook endpoint for live mode too. Stripe
+keeps test and live completely separate on purpose.
+
+### What's now enforced
+- **Free plan**: 3 uploads/month, 5 AI Assistant messages/month — both
+  limits check *before* any AI cost is spent, and both show real usage
+  bars in Settings → Billing and inline on the Upload/Assistant pages
+- **Pro plan** ($5/mo): unlimited uploads, unlimited AI Assistant, tracked
+  via a real Stripe subscription
+- Reports, Analytics, Dashboard, and Notifications are unaffected by
+  plan — available to both tiers, per your original spec
+
+
+
 ## Note on scope
 
-Phase B is complete: Reports now generate real, downloadable PDFs, and
-a full polish pass has been done across everything built since the
-original Phase 8 QA. At this point essentially everything in the app is
-real — Recommendations and Appliance Breakdown (labeled "AI Estimate")
-included as of Phase A. Remaining possibilities: Phase C (pricing
-decisions, real user testing) whenever you're ready for it.
+Phase B is complete: Reports generate real, downloadable PDFs, and a
+full polish pass has been done. Phase C is complete: real Stripe billing
+enforces the Free (3 uploads/mo, 5 AI messages/mo) and Pro ($5/mo,
+unlimited) plans described in the README's billing section above.
+
+At this point, essentially everything in VoltIQ is real: auth, bill
+parsing, forecasting, health score, peer comparison, AI Assistant,
+notifications, profile, analytics, recommendations, appliance estimates
+(honestly labeled), real PDF reports, and now real billing. What's
+intentionally still ahead: getting real users beyond your own testing,
+and iterating based on what that surfaces.
