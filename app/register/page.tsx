@@ -11,6 +11,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { createClient } from "@/lib/supabase/client";
 import { markLoginTimestamp } from "@/lib/session-expiry";
+import { validatePasswordStrength } from "@/lib/password-strength";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -36,6 +37,11 @@ export default function RegisterPage() {
     e.preventDefault();
     setError(null);
 
+    const passwordError = validatePasswordStrength(password);
+    if (passwordError) {
+      setError(passwordError);
+      return;
+    }
     if (password !== confirmPassword) {
       setError("Passwords don't match.");
       return;
@@ -145,7 +151,7 @@ export default function RegisterPage() {
           type="password"
           placeholder="••••••••"
           required
-          hint="At least 8 characters"
+          hint="At least 8 characters, with a letter and a number"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
         />

@@ -6,6 +6,7 @@ import { computeForecast, computeEnergyHealthScore, type ForecastResult, type Co
 import type { Bill } from "@/types";
 import { requireEnv } from "@/lib/env";
 import { FREE_TIER_CHAT_LIMIT, startOfCurrentMonthISO } from "@/lib/usage-limits";
+import { verifyOrigin } from "@/lib/csrf";
 
 const anthropic = new Anthropic({ apiKey: requireEnv(process.env.ANTHROPIC_API_KEY, "ANTHROPIC_API_KEY") });
 
@@ -77,6 +78,10 @@ function contextSourcesUsed(bills: Bill[], forecast: ForecastResult | null, heal
 }
 
 export async function POST(request: NextRequest) {
+  if (!verifyOrigin(request)) {
+    return NextResponse.json({ error: "Invalid request origin." }, { status: 403 });
+  }
+
   const supabase = await createClient();
   const {
     data: { user },

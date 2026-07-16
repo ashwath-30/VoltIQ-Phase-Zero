@@ -6,6 +6,7 @@ import { computeForecast, computeEnergyHealthScore } from "@/lib/energy-model";
 import { generateNotifications } from "@/lib/notification-rules";
 import { requireEnv } from "@/lib/env";
 import { FREE_TIER_UPLOAD_LIMIT, startOfCurrentMonthISO } from "@/lib/usage-limits";
+import { verifyOrigin } from "@/lib/csrf";
 
 // Server-only — this key must NEVER have the NEXT_PUBLIC_ prefix, or it
 // would be shipped to the browser and exposed to anyone who looks.
@@ -38,6 +39,10 @@ interface ExtractedBillData {
 }
 
 export async function POST(request: NextRequest) {
+  if (!verifyOrigin(request)) {
+    return NextResponse.json({ error: "Invalid request origin." }, { status: 403 });
+  }
+
   const supabase = await createClient();
   const {
     data: { user },

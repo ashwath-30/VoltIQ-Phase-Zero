@@ -830,11 +830,68 @@ to the public marketing site.
 
 
 
+## VoltIQX changes — Phase 3: additional security hardening
+
+No new setup — merge, install, restart, push.
+
+```
+npm install
+npm run dev
+```
+
+### What's new
+- **Content Security Policy (CSP)**: a real, meaningful header restricting
+  which scripts, styles, images, and network connections the browser
+  will allow on the page — genuine protection against a class of attack
+  (cross-site scripting) the earlier security headers didn't cover.
+  Honest tradeoff: it keeps `'unsafe-inline'` for scripts/styles rather
+  than a fully locked-down nonce-based setup, since the stricter version
+  needs live testing to get right without breaking the app, which isn't
+  safe to do blind. Meaningfully better than nothing, not a perfect lockdown.
+- **CSRF protection**: the four routes that actually change something —
+  uploading a bill, sending a chat message, starting a Stripe checkout,
+  opening the billing portal — now verify the request's Origin header
+  matches VoltIQX's own domain, stopping a malicious external site from
+  tricking a logged-in visitor's browser into silently submitting
+  requests on their behalf. The Stripe webhook correctly does NOT have
+  this check — it's protected differently (signature verification),
+  since Stripe's own servers calling it will never have a matching Origin.
+- **Real password strength enforcement**: registration now actually
+  requires at least 8 characters, one letter, and one number — not just
+  a hint text that wasn't enforced.
+
+### An honest gap found, not fixed here
+While checking password-related flows, I found Settings → Security →
+"Update password" is currently **cosmetic only** — it shows a save
+confirmation but was never wired to actually change anything. That's a
+pre-existing gap from earlier in the project, not something Phase 3
+was asked to fix, so I left it alone rather than build a new feature
+without being asked — just flagging it so it's a known, not hidden, gap.
+
+### The full security picture, in one place
+Since this phase is mostly invisible hardening, here's everything
+currently protecting VoltIQX, built up across every phase so far:
+
+| Protection | What it stops |
+|---|---|
+| Row Level Security on every table | One user reading/editing another user's data |
+| Service-role key isolated to one file | Even a code mistake elsewhere can't accidentally gain god-mode DB access |
+| Stripe webhook signature verification | Someone faking a "payment succeeded" call to unlock Pro for free |
+| Mandatory email verification | Anyone creating an account with an email they don't own |
+| Real 24-hour session expiry | A stolen/old session cookie working forever |
+| Environment variable validation | Silent misconfiguration instead of a clear, immediate error |
+| Security headers (X-Frame-Options, HSTS, etc.) | Clickjacking, protocol downgrade attacks |
+| Content Security Policy | Cross-site scripting from a compromised dependency |
+| CSRF Origin checks | A malicious site forging requests using a visitor's real session |
+| Password strength requirements | Trivially guessable passwords |
+
+
+
 ## Note on scope
 
-Phase 1 (rename, email verification, session security) and Phase 2
-(profile-completion gate, in-app upgrade page) of the VoltIQX changes
-are complete. Phase 3 (additional security hardening) is next. Real
-email deliverability (Resend + a verified custom domain) is a known
-open item, set aside for now to keep moving on the other requested
-changes.
+All 3 phases of the VoltIQX changes are complete: rename, email
+verification, session security (Phase 1); profile-completion gate and
+in-app upgrade page (Phase 2); CSP, CSRF protection, password strength,
+and a full security summary (Phase 3). Real email deliverability
+(Resend + a verified custom domain) remains a known open item, set
+aside to keep moving on everything else that was requested.
