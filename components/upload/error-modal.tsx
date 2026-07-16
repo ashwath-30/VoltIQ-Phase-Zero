@@ -43,7 +43,7 @@ export function UploadErrorModal({ open, onOpenChange, onRetry, message, limitRe
           </Button>
           {limitReached ? (
             <Button asChild>
-              <Link href="/pricing">
+              <Link href="/upgrade">
                 <Zap className="h-4 w-4" />
                 Upgrade to Pro
               </Link>

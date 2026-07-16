@@ -11,7 +11,7 @@ import { UploadHistoryTable } from "@/components/upload/upload-history-table";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { EmptyState } from "@/components/states";
-import { Sparkles, Zap } from "lucide-react";
+import { Sparkles, Zap, UserCog } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { mapDbBillToBill } from "@/lib/bills";
 import { FREE_TIER_UPLOAD_LIMIT, startOfCurrentMonthISO } from "@/lib/usage-limits";
@@ -31,6 +31,7 @@ export default function UploadPage() {
   const [billsLoading, setBillsLoading] = useState(true);
   const [plan, setPlan] = useState<"free" | "pro">("free");
   const [uploadsThisMonth, setUploadsThisMonth] = useState(0);
+  const [profileComplete, setProfileComplete] = useState(true);
 
   const loadBills = useCallback(async () => {
     setBillsLoading(true);
@@ -42,7 +43,7 @@ export default function UploadPage() {
 
     const [{ data, error }, { data: profile }, { count }] = await Promise.all([
       supabase.from("bills").select("*").order("upload_date", { ascending: false }),
-      supabase.from("profiles").select("plan").eq("id", user.id).single(),
+      supabase.from("profiles").select("plan, home_size, occupants").eq("id", user.id).single(),
       supabase
         .from("bills")
         .select("id", { count: "exact", head: true })
@@ -55,6 +56,7 @@ export default function UploadPage() {
     }
     setPlan(profile?.plan === "pro" ? "pro" : "free");
     setUploadsThisMonth(count ?? 0);
+    setProfileComplete(!!profile?.home_size && !!profile?.occupants);
     setBillsLoading(false);
   }, []);
 
@@ -127,6 +129,8 @@ export default function UploadPage() {
   }
 
   const atLimit = plan === "free" && uploadsThisMonth >= FREE_TIER_UPLOAD_LIMIT;
+  const isFirstUpload = bills.length === 0;
+  const blockedByIncompleteProfile = !billsLoading && isFirstUpload && !profileComplete;
 
   return (
     <div className="mx-auto flex max-w-3xl flex-col gap-6">
@@ -147,7 +151,7 @@ export default function UploadPage() {
               </p>
             </div>
             <Button size="sm" variant={atLimit ? "default" : "outline"} asChild>
-              <Link href="/pricing">
+              <Link href="/upgrade">
                 <Zap className="h-3.5 w-3.5" />
                 Upgrade to Pro
               </Link>
@@ -156,7 +160,23 @@ export default function UploadPage() {
         </Card>
       )}
 
-      {atLimit ? (
+      {blockedByIncompleteProfile ? (
+        <Card className="border-primary-200 dark:border-primary-900">
+          <CardContent className="pt-6">
+            <EmptyState
+              icon={UserCog}
+              title="Complete your profile before your first upload"
+              description="Your home size and occupant count help VoltIQX calculate an accurate forecast, Energy Health Score, and comparison to similar homes right from your very first bill — instead of guessing and correcting later."
+              action={{
+                label: "Complete your profile",
+                onClick: () => {
+                  window.location.href = "/profile";
+                },
+              }}
+            />
+          </CardContent>
+        </Card>
+      ) : atLimit ? (
         <EmptyState
           icon={Zap}
           title="Monthly upload limit reached"

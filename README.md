@@ -789,8 +789,52 @@ parsing, forecasting, health score, peer comparison, AI Assistant,
 notifications, profile, analytics, recommendations, appliance estimates
 (honestly labeled), real PDF reports, and real billing.
 
+## VoltIQX changes — Phase 2: profile-completion gate + in-app upgrade page
+
+No new database setup, no new environment variables — just merge,
+install, and test.
+
+```
+npm install
+npm run dev
+```
+
+### A. Profile-completion gate before the first upload
+If a brand-new account (zero bills uploaded yet) has an incomplete
+profile — specifically missing home size or occupant count — the Upload
+page now shows a blocking prompt instead of the drag-and-drop area,
+directing them to complete their profile first. **This only applies to
+the very first upload** — once someone has uploaded at least one bill,
+this gate never reappears, even if their profile is still incomplete
+(the existing welcome notification continues nudging them either way).
+
+**To test:** register a fresh account, don't touch the Profile page, go
+straight to `/upload` — you should see the blocking prompt instead of
+the dropzone. Fill in home size and occupants in Profile, go back to
+Upload — the real dropzone should appear.
+
+### B. A dedicated in-app upgrade page
+New page at `/upgrade`, living inside the dashboard (sidebar/topbar
+included) — separate from the public marketing `/pricing` page, which
+is untouched and still shows the same Free/Pro cards to visitors before
+they log in. The new in-app version additionally shows real usage bars
+(uploads/messages used this month) right next to the plan comparison,
+and every "Upgrade to Pro" prompt inside the app (Upload page's limit
+banner, the AI Assistant's usage banner, both limit-reached error
+messages) now sends people here instead of out to the public page.
+
+**To test:** as a free-tier user, click any "Upgrade to Pro" button
+inside the app (Upload, Assistant, or the limit-reached prompts) — you
+should land on `/upgrade`, still inside your dashboard, not bounced out
+to the public marketing site.
+
+
+
 ## Note on scope
 
-Phase 1 of the VoltIQX changes (rename, email verification, session
-security) is complete. Phases 2 (profile-completion gate + in-app
-upgrade page) and 3 (additional security hardening) are next.
+Phase 1 (rename, email verification, session security) and Phase 2
+(profile-completion gate, in-app upgrade page) of the VoltIQX changes
+are complete. Phase 3 (additional security hardening) is next. Real
+email deliverability (Resend + a verified custom domain) is a known
+open item, set aside for now to keep moving on the other requested
+changes.

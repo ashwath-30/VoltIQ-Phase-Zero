@@ -13,6 +13,7 @@ const protectedPaths = [
   "/notifications",
   "/profile",
   "/settings",
+  "/upgrade",
 ];
 
 // Pages a logged-in user shouldn't see (send them to the dashboard

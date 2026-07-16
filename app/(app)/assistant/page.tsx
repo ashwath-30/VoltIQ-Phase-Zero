@@ -155,7 +155,7 @@ export default function AssistantPage() {
             {chatsThisMonth} / {FREE_TIER_CHAT_LIMIT} messages used this month
           </span>
           <Button size="sm" variant="ghost" asChild>
-            <Link href="/pricing">
+            <Link href="/upgrade">
               <Zap className="h-3.5 w-3.5" />
               Upgrade
             </Link>
@@ -181,7 +181,7 @@ export default function AssistantPage() {
                   <div className="flex-1">
                     {error}
                     {limitReached && (
-                      <Link href="/pricing" className="ml-1 font-medium underline">
+                      <Link href="/upgrade" className="ml-1 font-medium underline">
                         Upgrade to Pro
                       </Link>
                     )}
