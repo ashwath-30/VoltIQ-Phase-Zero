@@ -7,6 +7,7 @@ import type { Bill } from "@/types";
 import { requireEnv } from "@/lib/env";
 import { FREE_TIER_CHAT_LIMIT, startOfCurrentMonthISO } from "@/lib/usage-limits";
 import { verifyOrigin } from "@/lib/csrf";
+import { DOE_FACTS } from "@/lib/doe-recommendations";
 
 const anthropic = new Anthropic({ apiKey: requireEnv(process.env.ANTHROPIC_API_KEY, "ANTHROPIC_API_KEY") });
 
@@ -42,6 +43,13 @@ function buildSystemPrompt(
       }`
     : "Not enough bill history yet to compute a health score.";
 
+  // Mission 2: a small, real, citable knowledge base of DOE/ENERGY STAR
+  // efficiency facts the model MAY draw on for general guidance — kept
+  // clearly separate from the user's own personal data above, and the
+  // model is instructed to attribute these correctly rather than blend
+  // them in as if they were personalized findings.
+  const doeFactsSummary = DOE_FACTS.map((f) => `- ${f.title}: ${f.fact} (Source: ${f.source})`).join("\n");
+
   return `You are the VoltIQX AI Energy Assistant, embedded in a home energy auditing app. You have access to this specific user's real account data below. Always answer using this real data when the question is about their account — never invent numbers that aren't provided here.
 
 USER PROFILE:
@@ -62,9 +70,14 @@ ${forecastSummary}
 ENERGY HEALTH SCORE:
 ${healthSummary}
 
+GENERAL EFFICIENCY FACTS (U.S. Department of Energy / ENERGY STAR — general
+guidance, NOT personalized to this specific user's home):
+${doeFactsSummary}
+
 IMPORTANT GUARDRAILS:
 - This app does NOT currently have appliance-level usage breakdown (e.g., exactly how much an AC unit or fridge uses individually) — only total, peak, and off-peak kWh per bill. If asked for an appliance-level breakdown, say honestly that this isn't available yet rather than inventing plausible-sounding numbers.
 - If there isn't enough bill history to answer confidently, say so rather than guessing.
+- When you reference one of the General Efficiency Facts above, be clear it's general government-sourced guidance, not a personalized finding from this user's own data — e.g., say "The Department of Energy notes that..." rather than presenting it as something you calculated specifically for them.
 - Keep responses concise, warm, and use markdown (bold, bullet lists) where it helps readability.
 - Never discuss or imply access to any other user's data.`;
 }

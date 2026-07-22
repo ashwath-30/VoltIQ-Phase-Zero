@@ -1,6 +1,7 @@
 import { jsPDF } from "jspdf";
 import type { Bill } from "@/types";
 import { generateRecommendations } from "@/lib/recommendation-engine";
+import { getDoeRecommendations } from "@/lib/doe-recommendations";
 import { formatCurrency, formatKwh } from "@/lib/utils";
 
 interface ProfileInfo {
@@ -13,15 +14,17 @@ interface ProfileInfo {
 }
 
 const EMERALD = [16, 185, 129] as const;
+const SECONDARY = [59, 130, 246] as const;
 const INK = [30, 41, 59] as const;
 const MUTED = [100, 116, 139] as const;
 
 /**
  * Builds a real PDF from one bill's actual data — cost, usage, peak/off-peak
- * split, and recommendations computed specifically for that bill (reusing
- * the same recommendation engine used on the Dashboard and Analytics
- * pages, not separate report-only logic). Triggers a direct browser
- * download; nothing is uploaded or stored server-side.
+ * split, personalized recommendations, AND (new in Mission 2 Phase 2) a
+ * section of general, government-sourced efficiency facts. The two
+ * recommendation sections are visually and textually distinct — one is
+ * computed from this specific bill, the other is general DOE/ENERGY STAR
+ * guidance — so a reader never mistakes one for the other.
  */
 export function generateMonthlyAuditPdf(bill: Bill, profile: ProfileInfo) {
   const doc = new jsPDF({ unit: "pt", format: "letter" });
@@ -67,7 +70,7 @@ export function generateMonthlyAuditPdf(bill: Bill, profile: ProfileInfo) {
   }
 
   // Bill summary section
-  y = sectionHeader(doc, "Bill Summary", margin, y);
+  y = sectionHeader(doc, "Bill Summary", margin, y, EMERALD);
   const totalUsage = bill.peakUsageKwh + bill.offPeakUsageKwh;
   const peakShare = totalUsage > 0 ? Math.round((bill.peakUsageKwh / totalUsage) * 100) : 0;
 
@@ -77,7 +80,7 @@ export function generateMonthlyAuditPdf(bill: Bill, profile: ProfileInfo) {
   y = statRow(doc, "Off-Peak Usage", formatKwh(bill.offPeakUsageKwh), margin, y);
   y += 20;
 
-  // Recommendations section, computed specifically from this bill
+  // Personalized recommendations, computed specifically from this bill
   const recs = generateRecommendations(
     [bill],
     {
@@ -88,7 +91,8 @@ export function generateMonthlyAuditPdf(bill: Bill, profile: ProfileInfo) {
     "pdf_rec"
   );
 
-  y = sectionHeader(doc, "Recommendations", margin, y);
+  y = ensureSpace(doc, y, 60);
+  y = sectionHeader(doc, "Recommendations — computed from this bill", margin, y, EMERALD);
   if (recs.length === 0) {
     doc.setFont("helvetica", "normal");
     doc.setFontSize(10);
@@ -97,10 +101,7 @@ export function generateMonthlyAuditPdf(bill: Bill, profile: ProfileInfo) {
     y += 20;
   } else {
     for (const rec of recs) {
-      if (y > 680) {
-        doc.addPage();
-        y = 64;
-      }
+      y = ensureSpace(doc, y, 60);
       doc.setFont("helvetica", "bold");
       doc.setFontSize(11);
       doc.setTextColor(...INK);
@@ -116,26 +117,56 @@ export function generateMonthlyAuditPdf(bill: Bill, profile: ProfileInfo) {
     }
   }
 
-  // Footer disclaimer
-  const footerY = 740;
-  doc.setDrawColor(226, 232, 240);
-  doc.line(margin, footerY - 14, pageWidth - margin, footerY - 14);
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(8);
+  // General Efficiency Tips — government-sourced, NOT computed from this
+  // bill. Deliberately a separate section with its own heading color and
+  // an explicit note plus a real citation per tip, so it's never confused
+  // with the personalized recommendations above.
+  y += 8;
+  y = ensureSpace(doc, y, 80);
+  y = sectionHeader(doc, "General Efficiency Tips (U.S. DOE / ENERGY STAR)", margin, y, SECONDARY);
+
+  doc.setFont("helvetica", "italic");
+  doc.setFontSize(8.5);
   doc.setTextColor(...MUTED);
-  const disclaimer = doc.splitTextToSize(
-    "This report is generated automatically from data you uploaded to VoltIQX. Forecasts, scores, and recommendations are estimates, not guarantees — see VoltIQX's Terms of Service for details.",
-    pageWidth - margin * 2
-  );
-  doc.text(disclaimer, margin, footerY);
+  doc.text("General guidance below — not calculated from your specific bill.", margin, y);
+  y += 16;
+
+  const avgMonthlyBill = bill.totalCost;
+  const doeTips = getDoeRecommendations(avgMonthlyBill);
+
+  for (const tip of doeTips) {
+    y = ensureSpace(doc, y, 60);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(10.5);
+    doc.setTextColor(...INK);
+    const savingsLabel = tip.estimatedMonthlySavings != null ? `  —  ~${formatCurrency(tip.estimatedMonthlySavings)}/mo` : "";
+    doc.text(`${tip.title}${savingsLabel}`, margin, y);
+    y += 15;
+
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(9);
+    doc.setTextColor(...MUTED);
+    const wrappedFact = doc.splitTextToSize(tip.fact, pageWidth - margin * 2);
+    doc.text(wrappedFact, margin, y);
+    y += wrappedFact.length * 12 + 4;
+
+    doc.setFont("helvetica", "italic");
+    doc.setFontSize(8);
+    doc.setTextColor(...SECONDARY);
+    doc.text(`Source: ${tip.source}`, margin, y);
+    y += 18;
+  }
+
+  // Footer disclaimer
+  addFooter(doc, margin, pageWidth);
 
   doc.save(`VoltIQX-Monthly-Audit-${bill.billingPeriod}.pdf`);
 }
 
-function sectionHeader(doc: jsPDF, title: string, x: number, y: number): number {
+function sectionHeader(doc: jsPDF, title: string, x: number, y: number, color: readonly [number, number, number]): number {
   doc.setFont("helvetica", "bold");
   doc.setFontSize(12);
-  doc.setTextColor(...EMERALD);
+  doc.setTextColor(...color);
   doc.text(title.toUpperCase(), x, y);
   return y + 20;
 }
@@ -150,4 +181,28 @@ function statRow(doc: jsPDF, label: string, value: string, x: number, y: number)
   doc.setTextColor(...INK);
   doc.text(value, x + 160, y);
   return y + 20;
+}
+
+// Starts a fresh page if the current position is too close to the
+// bottom margin to fit the next block of content.
+function ensureSpace(doc: jsPDF, y: number, needed: number): number {
+  if (y + needed > 700) {
+    doc.addPage();
+    return 64;
+  }
+  return y;
+}
+
+function addFooter(doc: jsPDF, margin: number, pageWidth: number) {
+  const footerY = 740;
+  doc.setDrawColor(226, 232, 240);
+  doc.line(margin, footerY - 14, pageWidth - margin, footerY - 14);
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(8);
+  doc.setTextColor(...MUTED);
+  const disclaimer = doc.splitTextToSize(
+    "This report is generated automatically from data you uploaded to VoltIQX. Forecasts, scores, and personalized recommendations are estimates, not guarantees. General Efficiency Tips are sourced from the U.S. Department of Energy and ENERGY STAR and are not personalized to your specific home. See VoltIQX's Terms of Service for details.",
+    pageWidth - margin * 2
+  );
+  doc.text(disclaimer, margin, footerY);
 }

@@ -10,6 +10,7 @@ import { ApplianceBreakdownChart } from "@/components/analytics/appliance-breakd
 import { PeakOffPeakChart } from "@/components/analytics/peak-offpeak-chart";
 import { CarbonEmissionsChart } from "@/components/analytics/carbon-emissions-chart";
 import { SavingsOpportunitiesList } from "@/components/analytics/savings-opportunities-list";
+import { DoeEfficiencyTips } from "@/components/analytics/doe-efficiency-tips";
 import { MonthlyCostChart } from "@/components/dashboard/charts/monthly-cost-chart";
 import { MonthlyUsageChart } from "@/components/dashboard/charts/monthly-usage-chart";
 import { CostTrendChart } from "@/components/dashboard/charts/cost-trend-chart";
@@ -165,6 +166,7 @@ export default function AnalyticsPage() {
       </div>
 
       <SavingsOpportunitiesList recommendations={recommendations} />
+      <DoeEfficiencyTips avgMonthlyBill={monthlyPoints.reduce((sum, m) => sum + m.cost, 0) / monthlyPoints.length} />
     </div>
   );
 }
