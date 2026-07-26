@@ -42,7 +42,7 @@ export async function GET(request: NextRequest) {
 
   const endDate = new Date();
   const startDate = new Date();
-  startDate.setDate(startDate.getDate() - 30);
+  startDate.setDate(startDate.getDate() - 90);
   const fmt = (d: Date) => d.toISOString().slice(0, 10);
 
   const dailyTemps = await getDailyTemps(station.id, fmt(startDate), fmt(endDate));

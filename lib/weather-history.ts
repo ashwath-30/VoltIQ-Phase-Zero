@@ -54,10 +54,16 @@ interface NoaaStation {
 export async function findNearestNoaaStation(coords: Coordinates): Promise<NoaaStation | null> {
   const token = requireEnv(process.env.NOAA_API_TOKEN, "NOAA_API_TOKEN");
 
-  // Small bounding box (~0.5 degrees, roughly 30 miles) around the point.
-  const pad = 0.5;
+  // Wider bounding box (~0.75 degrees, roughly 45 miles) — needed because
+  // stations that actually report temperature (as opposed to rain-gauge-only
+  // volunteer stations, which are far more numerous) are less common.
+  const pad = 0.75;
   const extent = `${coords.lat - pad},${coords.lon - pad},${coords.lat + pad},${coords.lon + pad}`;
-  const url = `https://www.ncdc.noaa.gov/cdo-web/api/v2/stations?datasetid=GHCND&extent=${extent}&limit=5&sortfield=datacoverage&sortorder=desc`;
+  // datatypeid=TMAX restricts results to stations that actually report
+  // temperature — without this, the search can return a station that only
+  // measures rainfall (common "US1..." volunteer rain-gauge stations),
+  // which has real data but none of what we need.
+  const url = `https://www.ncdc.noaa.gov/cdo-web/api/v2/stations?datasetid=GHCND&datatypeid=TMAX&extent=${extent}&limit=10&sortfield=datacoverage&sortorder=desc`;
 
   try {
     const response = await fetch(url, { headers: { token } });
