@@ -1,13 +1,18 @@
 import { requireEnv } from "@/lib/env";
 
 /**
- * This whole pipeline deliberately uses ONLY U.S. government data sources
- * (Census Bureau geocoding, NOAA historical weather records) — both are
- * public domain federal government work, same legal category as the
- * DOE/ENERGY STAR data used in Mission 2. This was a deliberate choice
- * over a third-party weather API (like Open-Meteo) whose free tier is
- * explicitly restricted to non-commercial use — since VoltIQX now has a
- * real paid Pro tier, that restriction would actually apply to us.
+ * This pipeline uses NOAA (U.S. government, public domain) for the actual
+ * historical weather records, and Zippopotam.us for ZIP-to-coordinates
+ * lookup. Zippopotam.us is built on GeoNames data, licensed CC BY 4.0 —
+ * commercial use is explicitly permitted under that license as long as
+ * attribution is given (unlike Open-Meteo's free tier, which restricts
+ * commercial use as a business-model choice separate from its data
+ * license). Attribution: location lookups powered by GeoNames.org.
+ *
+ * Note: the Census Bureau's geocoder was tried first, but its address
+ * API is built for full street addresses — it doesn't reliably resolve a
+ * bare ZIP code with no street, which is exactly the failure this
+ * replaced.
  */
 
 interface Coordinates {
@@ -16,23 +21,21 @@ interface Coordinates {
 }
 
 /**
- * Step 1: Convert a ZIP code to coordinates using the Census Bureau's
- * free, public geocoding service. No API key required.
+ * Step 1: Convert a ZIP code to coordinates using Zippopotam.us, which
+ * is purpose-built for exactly this lookup. No API key required.
  */
 export async function geocodeZip(zipCode: string): Promise<Coordinates | null> {
-  const url = `https://geocoding.geo.census.gov/geocoder/locations/address?street=&city=&state=&zip=${encodeURIComponent(
-    zipCode
-  )}&benchmark=Public_AR_Current&format=json`;
+  const url = `https://api.zippopotam.us/us/${encodeURIComponent(zipCode.trim())}`;
 
   try {
     const response = await fetch(url);
     if (!response.ok) return null;
     const data = await response.json();
-    const match = data?.result?.addressMatches?.[0];
-    if (!match?.coordinates) return null;
-    return { lat: match.coordinates.y, lon: match.coordinates.x };
+    const place = data?.places?.[0];
+    if (!place?.latitude || !place?.longitude) return null;
+    return { lat: parseFloat(place.latitude), lon: parseFloat(place.longitude) };
   } catch (err) {
-    console.error("Census geocoding error:", err);
+    console.error("ZIP geocoding error:", err);
     return null;
   }
 }
