@@ -154,10 +154,10 @@ export default function ProfilePage() {
               <FormField label="Email" type="email" value={form.email} disabled hint="Contact support to change your email" />
             </div>
             <FormField
-              label="Address"
+              label="ZIP Code"
               value={form.address}
               onChange={(e) => setForm((f) => ({ ...f, address: e.target.value }))}
-              placeholder="123 Main St, City, State"
+              placeholder="78704"
             />
             <FormField
               label="Utility company"
