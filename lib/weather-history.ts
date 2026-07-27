@@ -50,8 +50,20 @@ interface NoaaStation {
  * records, using NOAA's Climate Data Online (CDO) API. Requires a free
  * token (see .env.local.example) — signing up takes about a minute and
  * doesn't require payment info, just an email address.
+ *
+ * IMPORTANT: startDate/endDate are required here, not optional — a
+ * station can have excellent historical data while having stopped
+ * reporting years ago. Without constraining the search to the actual
+ * window we intend to query, we can select a station that returns zero
+ * real records even though it "has" temperature data in a general
+ * sense. Passing the real window filters to stations confirmed active
+ * during that specific period.
  */
-export async function findNearestNoaaStation(coords: Coordinates): Promise<NoaaStation | null> {
+export async function findNearestNoaaStation(
+  coords: Coordinates,
+  startDate: string,
+  endDate: string
+): Promise<NoaaStation | null> {
   const token = requireEnv(process.env.NOAA_API_TOKEN, "NOAA_API_TOKEN");
 
   // Wider bounding box (~0.75 degrees, roughly 45 miles) — needed because
@@ -59,11 +71,10 @@ export async function findNearestNoaaStation(coords: Coordinates): Promise<NoaaS
   // volunteer stations, which are far more numerous) are less common.
   const pad = 0.75;
   const extent = `${coords.lat - pad},${coords.lon - pad},${coords.lat + pad},${coords.lon + pad}`;
-  // datatypeid=TMAX restricts results to stations that actually report
-  // temperature — without this, the search can return a station that only
-  // measures rainfall (common "US1..." volunteer rain-gauge stations),
-  // which has real data but none of what we need.
-  const url = `https://www.ncdc.noaa.gov/cdo-web/api/v2/stations?datasetid=GHCND&datatypeid=TMAX&extent=${extent}&limit=10&sortfield=datacoverage&sortorder=desc`;
+  // datatypeid=TMAX restricts results to stations that report temperature
+  // at all; startdate/enddate additionally restrict to stations confirmed
+  // to have data within the specific window we're about to query.
+  const url = `https://www.ncdc.noaa.gov/cdo-web/api/v2/stations?datasetid=GHCND&datatypeid=TMAX&extent=${extent}&startdate=${startDate}&enddate=${endDate}&limit=10&sortfield=datacoverage&sortorder=desc`;
 
   try {
     const response = await fetch(url, { headers: { token } });

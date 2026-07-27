@@ -40,19 +40,23 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ step: "geocode", error: "Couldn't convert that ZIP code to coordinates." }, { status: 500 });
   }
 
-  const station = await findNearestNoaaStation(coords);
-  if (!station) {
-    return NextResponse.json(
-      { step: "station lookup", coords, error: "Couldn't find a nearby NOAA weather station." },
-      { status: 500 }
-    );
-  }
-
   const endDate = new Date();
   endDate.setDate(endDate.getDate() - 60);
   const startDate = new Date();
   startDate.setDate(startDate.getDate() - 150);
   const fmt = (d: Date) => d.toISOString().slice(0, 10);
+
+  const station = await findNearestNoaaStation(coords, fmt(startDate), fmt(endDate));
+  if (!station) {
+    return NextResponse.json(
+      {
+        step: "station lookup",
+        coords,
+        error: "Couldn't find a nearby NOAA weather station with data in the test window.",
+      },
+      { status: 500 }
+    );
+  }
 
   const dailyTemps = await getDailyTemps(station.id, fmt(startDate), fmt(endDate));
   const degreeDays = computeDegreeDays(dailyTemps);
