@@ -15,7 +15,8 @@ function buildSystemPrompt(
   profile: Record<string, any> | null,
   bills: Bill[],
   forecast: ForecastResult | null,
-  healthScore: ComputedHealthScore | null
+  healthScore: ComputedHealthScore | null,
+  weatherInsight: string | null
 ): string {
   const recentBills = [...bills]
     .sort((a, b) => b.billingPeriod.localeCompare(a.billingPeriod))
@@ -50,6 +51,15 @@ function buildSystemPrompt(
   // them in as if they were personalized findings.
   const doeFactsSummary = DOE_FACTS.map((f) => `- ${f.title}: ${f.fact} (Source: ${f.source})`).join("\n");
 
+  // Mission 1: real weather-vs-baseline attribution, computed by the
+  // degree-day regression (a separate route, not run live in this
+  // request — see app/api/weather-insights). Only included when a real
+  // result exists; never fabricated if the regression hasn't run yet or
+  // didn't find anything notable.
+  const weatherSummary = weatherInsight
+    ? weatherInsight
+    : "No weather-adjusted usage analysis available yet for this account.";
+
   return `You are the VoltIQX AI Energy Assistant, embedded in a home energy auditing app. You have access to this specific user's real account data below. Always answer using this real data when the question is about their account — never invent numbers that aren't provided here.
 
 USER PROFILE:
@@ -70,6 +80,10 @@ ${forecastSummary}
 ENERGY HEALTH SCORE:
 ${healthSummary}
 
+WEATHER-ADJUSTED USAGE ANALYSIS (real degree-day regression, separates
+weather-driven usage from baseline — see this app's Mission 1 methodology):
+${weatherSummary}
+
 GENERAL EFFICIENCY FACTS (U.S. Department of Energy / ENERGY STAR — general
 guidance, NOT personalized to this specific user's home):
 ${doeFactsSummary}
@@ -77,6 +91,7 @@ ${doeFactsSummary}
 IMPORTANT GUARDRAILS:
 - This app does NOT currently have appliance-level usage breakdown (e.g., exactly how much an AC unit or fridge uses individually) — only total, peak, and off-peak kWh per bill. If asked for an appliance-level breakdown, say honestly that this isn't available yet rather than inventing plausible-sounding numbers.
 - If there isn't enough bill history to answer confidently, say so rather than guessing.
+- If asked "why was my bill higher" and a weather-adjusted analysis is available above, use it directly — that's a real, computed attribution, not a guess. If none is available, say so honestly rather than speculating about weather.
 - When you reference one of the General Efficiency Facts above, be clear it's general government-sourced guidance, not a personalized finding from this user's own data — e.g., say "The Department of Energy notes that..." rather than presenting it as something you calculated specifically for them.
 - Keep responses concise, warm, and use markdown (bold, bullet lists) where it helps readability.
 - Never discuss or imply access to any other user's data.`;
@@ -109,10 +124,17 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Message is required." }, { status: 400 });
   }
 
-  const [{ data: profile }, { data: billRows }, { data: chatRows }] = await Promise.all([
+  const [{ data: profile }, { data: billRows }, { data: chatRows }, { data: weatherNotif }] = await Promise.all([
     supabase.from("profiles").select("*").eq("id", user.id).single(),
     supabase.from("bills").select("*").order("upload_date", { ascending: false }),
     supabase.from("chats").select("role, content").order("timestamp", { ascending: true }).limit(20),
+    supabase
+      .from("notifications")
+      .select("description, timestamp")
+      .eq("user_id", user.id)
+      .eq("title", "Your baseline usage rose — not the weather")
+      .order("timestamp", { ascending: false })
+      .limit(1),
   ]);
 
   const plan = profile?.plan ?? "free";
@@ -139,7 +161,12 @@ export async function POST(request: NextRequest) {
   const forecast = bills.length > 0 ? computeForecast(bills) : null;
   const healthScore = bills.length > 0 ? computeEnergyHealthScore(bills) : null;
 
-  const systemPrompt = buildSystemPrompt(profile, bills, forecast, healthScore);
+  const latestWeatherNotif = weatherNotif?.[0];
+  const isRecentEnough =
+    latestWeatherNotif && Date.now() - new Date(latestWeatherNotif.timestamp).getTime() < 60 * 24 * 60 * 60 * 1000;
+  const weatherInsight = isRecentEnough ? latestWeatherNotif.description : null;
+
+  const systemPrompt = buildSystemPrompt(profile, bills, forecast, healthScore, weatherInsight);
   const conversationHistory = (chatRows ?? []).map((row: { role: string; content: string }) => ({
     role: row.role as "user" | "assistant",
     content: row.content as string,
