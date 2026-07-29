@@ -4,5 +4,8 @@
       "path": "/api/cron/check-stale-bills",
       "schedule": "0 13 * * *"
     }
+    { "path": "/api/cron/weather-insights", 
+      "schedule": "0 14 * * *" 
+    }
   ]
 }
