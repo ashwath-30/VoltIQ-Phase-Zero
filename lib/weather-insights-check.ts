@@ -87,6 +87,22 @@ export async function checkWeatherInsightForUser(
   }
 
   const splits = points.map((p) => splitUsage(p, regression));
+
+  // Cache the full breakdown so the Analytics page can read it instantly
+  // instead of re-running this entire multi-API pipeline on every page
+  // load. Refreshed every time this function runs successfully,
+  // independent of whether a notification also gets created below.
+  await supabase
+    .from("profiles")
+    .update({
+      weather_insight_cache: {
+        splits,
+        rSquared: regression.rSquared,
+        computedAt: new Date().toISOString(),
+      },
+    })
+    .eq("id", userId);
+
   const latest = splits[splits.length - 1];
   const previous = splits.slice(0, -1);
   const avgPreviousBaseline = previous.reduce((sum, s) => sum + s.baselineKwh, 0) / previous.length;

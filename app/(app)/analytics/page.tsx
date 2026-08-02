@@ -15,6 +15,7 @@ import { MonthlyCostChart } from "@/components/dashboard/charts/monthly-cost-cha
 import { MonthlyUsageChart } from "@/components/dashboard/charts/monthly-usage-chart";
 import { CostTrendChart } from "@/components/dashboard/charts/cost-trend-chart";
 import { ForecastedBillChart } from "@/components/dashboard/charts/forecasted-bill-chart";
+import { WeatherUsageChart } from "@/components/analytics/weather-usage-chart";
 import { EmptyState, ChartSkeleton, CardSkeleton } from "@/components/states";
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/client";
@@ -47,7 +48,7 @@ export default function AnalyticsPage() {
       if (!user) return;
 
       const [{ data: profile }, { data: billRows }] = await Promise.all([
-        supabase.from("profiles").select("home_size, has_solar, has_battery, has_ev").eq("id", user.id).single(),
+        supabase.from("profiles").select("home_size, has_solar, has_battery, has_ev, weather_insight_cache").eq("id", user.id).single(),
         supabase.from("bills").select("*").order("upload_date", { ascending: false }),
       ]);
 
@@ -167,6 +168,7 @@ export default function AnalyticsPage() {
 
       <SavingsOpportunitiesList recommendations={recommendations} />
       <DoeEfficiencyTips avgMonthlyBill={monthlyPoints.reduce((sum, m) => sum + m.cost, 0) / monthlyPoints.length} />
+      <WeatherUsageChart cache={profile?.weather_insight_cache} />
     </div>
   );
 }
