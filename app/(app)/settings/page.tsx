@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/states";
 import { Monitor, Smartphone, Plug2, LifeBuoy, ShieldCheck, Zap, Loader2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { validatePasswordStrength } from "@/lib/password-strength";
 import { FREE_TIER_UPLOAD_LIMIT, FREE_TIER_CHAT_LIMIT, startOfCurrentMonthISO } from "@/lib/usage-limits";
 
 const notificationPrefs = [
@@ -30,6 +31,11 @@ export default function SettingsPage() {
   const [chatsUsed, setChatsUsed] = useState(0);
   const [billingLoading, setBillingLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [passwordSaving, setPasswordSaving] = useState(false);
+  const [passwordMessage, setPasswordMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
   useEffect(() => {
     async function loadBilling() {
@@ -83,6 +89,34 @@ export default function SettingsPage() {
       setActionLoading(false);
     }
   }
+
+  async function handleUpdatePassword() {
+  setPasswordMessage(null);
+
+  const strengthError = validatePasswordStrength(newPassword);
+  if (strengthError) {
+    setPasswordMessage({ type: "error", text: strengthError });
+    return;
+  }
+  if (newPassword !== confirmPassword) {
+    setPasswordMessage({ type: "error", text: "New passwords don't match." });
+    return;
+  }
+
+  setPasswordSaving(true);
+  const supabase = createClient();
+  const { error } = await supabase.auth.updateUser({ password: newPassword });
+  setPasswordSaving(false);
+
+  if (error) {
+    setPasswordMessage({ type: "error", text: error.message });
+  } else {
+    setPasswordMessage({ type: "success", text: "Password updated." });
+    setCurrentPassword("");
+    setNewPassword("");
+    setConfirmPassword("");
+  }
+}
 
   return (
     <div className="mx-auto max-w-3xl">
@@ -162,12 +196,38 @@ export default function SettingsPage() {
               <CardDescription>Choose a strong password you don't use elsewhere</CardDescription>
             </CardHeader>
             <CardContent className="flex flex-col gap-4">
-              <FormField label="Current password" type="password" placeholder="••••••••" />
-              <FormField label="New password" type="password" placeholder="••••••••" hint="At least 8 characters" />
-              <FormField label="Confirm new password" type="password" placeholder="••••••••" />
-              <div>
-                <SaveButton label="Update password" />
-              </div>
+              <FormField
+  label="Current password"
+  type="password"
+  placeholder="••••••••"
+  value={currentPassword}
+  onChange={(e) => setCurrentPassword(e.target.value)}
+/>
+<FormField
+  label="New password"
+  type="password"
+  placeholder="••••••••"
+  hint="At least 8 characters, with a letter and a number"
+  value={newPassword}
+  onChange={(e) => setNewPassword(e.target.value)}
+/>
+<FormField
+  label="Confirm new password"
+  type="password"
+  placeholder="••••••••"
+  value={confirmPassword}
+  onChange={(e) => setConfirmPassword(e.target.value)}
+/>
+{passwordMessage && (
+  <p className={passwordMessage.type === "error" ? "text-sm text-destructive" : "text-sm text-primary"}>
+    {passwordMessage.text}
+  </p>
+)}
+<div>
+  <Button onClick={handleUpdatePassword} disabled={passwordSaving}>
+    {passwordSaving ? "Saving..." : "Update password"}
+  </Button>
+</div>
             </CardContent>
           </Card>
 
