@@ -38,6 +38,7 @@ export default function AnalyticsPage() {
   const [recommendations, setRecommendations] = useState<GeneratedRecommendation[]>([]);
   const [applianceData, setApplianceData] = useState<{ name: string; kwh: number }[] | null>(null);
   const [applianceLoading, setApplianceLoading] = useState(true);
+  const [weatherCache, setWeatherCache] = useState<any>(null);
 
   useEffect(() => {
     async function load() {
@@ -55,6 +56,7 @@ export default function AnalyticsPage() {
       const realBills = (billRows ?? []).map(mapDbBillToBill).filter((b) => b.status === "processed");
       setBills(realBills);
       setHomeSize(profile?.home_size ?? 0);
+      setWeatherCache(profile?.weather_insight_cache ?? null);
       setRecommendations(
         generateRecommendations(realBills, {
           hasSolar: !!profile?.has_solar,
@@ -168,7 +170,7 @@ export default function AnalyticsPage() {
 
       <SavingsOpportunitiesList recommendations={recommendations} />
       <DoeEfficiencyTips avgMonthlyBill={monthlyPoints.reduce((sum, m) => sum + m.cost, 0) / monthlyPoints.length} />
-      <WeatherUsageChart cache={profile?.weather_insight_cache} />
+      <WeatherUsageChart cache={weatherCache} />
     </div>
   );
 }
