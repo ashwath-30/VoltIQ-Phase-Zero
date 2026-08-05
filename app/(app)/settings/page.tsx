@@ -14,6 +14,7 @@ import { EmptyState } from "@/components/states";
 import { Monitor, Smartphone, Plug2, LifeBuoy, ShieldCheck, Zap, Loader2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { validatePasswordStrength } from "@/lib/password-strength";
+import { TwoFactorSetup } from "@/components/settings/two-factor-setup";
 import { FREE_TIER_UPLOAD_LIMIT, FREE_TIER_CHAT_LIMIT, startOfCurrentMonthISO } from "@/lib/usage-limits";
 
 const notificationPrefs = [
@@ -231,20 +232,7 @@ export default function SettingsPage() {
             </CardContent>
           </Card>
 
-          <Card className="mt-4">
-            <CardHeader className="flex flex-row items-center gap-3 space-y-0">
-              <ShieldCheck className="h-5 w-5 text-primary" />
-              <div>
-                <CardTitle className="text-base">Two-factor authentication</CardTitle>
-                <CardDescription>Add an extra layer of security to your account</CardDescription>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <Button variant="outline" size="sm">
-                Enable 2FA
-              </Button>
-            </CardContent>
-          </Card>
+          <TwoFactorSetup />
         </TabsContent>
 
         {/* Connected Devices */}
