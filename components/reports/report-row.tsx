@@ -1,11 +1,8 @@
-"use client";
-
 import { useState } from "react";
 import { FileText, CalendarRange, TrendingUp, Gauge, Download, Loader2, Check, AlertTriangle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import type { ReportItem, Bill } from "@/types";
-import { generateMonthlyAuditPdf } from "@/lib/generate-report-pdf";
+import type { ReportItem } from "@/types";
 
 const typeConfig = {
   "monthly-audit": { icon: FileText, label: "Monthly Audit" },
@@ -22,30 +19,22 @@ const statusVariant = {
 
 interface ReportRowProps {
   report: ReportItem;
-  bill?: Bill;
-  profile?: {
-    name?: string;
-    address?: string;
-    utilityProvider?: string;
-    hasSolar?: boolean;
-    hasBattery?: boolean;
-    hasEv?: boolean;
-  };
+  onDownload?: () => void | Promise<void>;
 }
 
-export function ReportRow({ report, bill, profile }: ReportRowProps) {
+export function ReportRow({ report, onDownload }: ReportRowProps) {
   const [state, setState] = useState<"idle" | "generating" | "done" | "error">("idle");
   const { icon: Icon, label } = typeConfig[report.type];
-  const canDownload = report.status === "ready" && !!bill;
+  const canDownload = report.status === "ready" && !!onDownload;
 
   async function handleDownload() {
-    if (!bill || state === "generating") return;
+    if (!onDownload || state === "generating") return;
     setState("generating");
     try {
       // Runs entirely in the browser — a brief tick lets the spinner
       // actually render before the (fast, synchronous) PDF build runs.
       await new Promise((resolve) => setTimeout(resolve, 150));
-      generateMonthlyAuditPdf(bill, profile ?? {});
+      await onDownload();
       setState("done");
       setTimeout(() => setState("idle"), 1800);
     } catch (err) {
