@@ -22,8 +22,8 @@ export default function PrivacyPage() {
             securely by our authentication provider).
           </li>
           <li>
-            <strong className="text-foreground">Home profile information</strong> — address, utility
-            provider, home size, number of occupants, and whether you have solar panels, a home
+            <strong className="text-foreground">Home profile information</strong> — ZIP code,
+provider, home size, number of occupants, and whether you have solar panels, a home
             battery, or an electric vehicle. All of this is optional and provided by you.
           </li>
           <li>
