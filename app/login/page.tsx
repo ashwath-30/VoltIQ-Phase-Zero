@@ -32,7 +32,13 @@ export default function LoginPage() {
     }
 
     markLoginTimestamp();
-    router.push("/dashboard");
+
+    const { data: aal } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+    if (aal && aal.nextLevel === "aal2" && aal.currentLevel !== aal.nextLevel) {
+      router.push("/verify-2fa");
+    } else {
+      router.push("/dashboard");
+    }
     router.refresh();
   }
 

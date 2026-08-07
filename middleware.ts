@@ -79,6 +79,25 @@ export async function middleware(request: NextRequest) {
     return redirectResponse;
   }
 
+// Real 2FA enforcement — if this account has a verified authenticator
+  // but the current session hasn't completed that second factor yet
+  // (assurance level aal1, needs aal2), block every protected page until
+  // they do. Runs on every request, not just right after login, so
+  // typing a dashboard URL directly can't skip this. If the assurance
+  // check itself fails to respond, this fails OPEN (doesn't block) — a
+  // deliberate tradeoff so a transient API hiccup can't lock out every
+  // user, not just ones with 2FA enabled.
+  if (effectiveUser && protectedPaths.some((p) => path.startsWith(p))) {
+    const { data: aal } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+    if (aal && aal.nextLevel === "aal2" && aal.currentLevel !== aal.nextLevel) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/verify-2fa";
+      const redirectResponse = NextResponse.redirect(url);
+      response.cookies.getAll().forEach((cookie) => redirectResponse.cookies.set(cookie));
+      return redirectResponse;
+    }
+  }
+
   if (effectiveUser && authOnlyPaths.some((p) => path.startsWith(p))) {
     const url = request.nextUrl.clone();
     url.pathname = "/dashboard";
